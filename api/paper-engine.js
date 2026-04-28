@@ -771,6 +771,10 @@ async function runEngine(opts = {}) {
     L(`[Paper] circuit check error: ${e.message}`);
   }
 
+  // Laad Redis config overrides (gezet via /config pagina) en pas toe
+  const runtimeCfg = await loadRuntimeConfig();
+  applyRuntimeConfig(runtimeCfg);
+
   // Load unified state + positions
   const state = await portfolio.loadState();
   const positions = await portfolio.loadPositions();
