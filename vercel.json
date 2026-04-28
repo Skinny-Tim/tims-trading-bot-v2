@@ -283,10 +283,6 @@
     {
       "path": "/api/audit?action=archive",
       "schedule": "55 23 * * *"
-    },
-    {
-      "path": "/api/paper-engine",
-      "schedule": "*/10 * * * *"
     }
   ]
 }
