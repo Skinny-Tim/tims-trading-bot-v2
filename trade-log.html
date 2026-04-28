@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camelot — Trade Log</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #F5F3EF;
+      color: #002035;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #002035;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .topbar .sub { font-size: 12px; color: #7EA8C4; margin-left: auto; }
+    .back-link {
+      color: #7EA8C4;
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .back-link:hover { color: #fff; }
+
+    /* ── Layout ── */
+    .page { max-width: 1300px; margin: 0 auto; padding: 20px 16px; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid rgba(0,32,53,0.08);
+    }
+    .stat-card .label { font-size: 11px; color: #7EA8C4; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stat-card .value { font-size: 22px; font-weight: 700; color: #002035; }
+    .stat-card .value.green { color: #27AE60; }
+    .stat-card .value.red   { color: #EB5757; }
+
+    /* ── Claude analysis panel ── */
+    .claude-panel {
+      background: linear-gradient(135deg, #002035 0%, #003554 100%);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .claude-panel h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .claude-panel .summary { font-size: 13px; color: #B8D4E8; line-height: 1.6; margin-bottom: 14px; }
+    .recs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+    .rec-card {
+      background: rgba(255,255,255,0.07);
+      border-radius: 8px;
+      padding: 12px 14px;
+      border-left: 3px solid #D4AF37;
+    }
+    .rec-card.high   { border-left-color: #EB5757; }
+    .rec-card.medium { border-left-color: #F2994A; }
+    .rec-card.low    { border-left-color: #27AE60; }
+    .rec-param  { font-size: 12px; font-weight: 700; color: #7CC6FF; margin-bottom: 3px; }
+    .rec-change { font-size: 13px; color: #fff; margin-bottom: 4px; }
+    .rec-reason { font-size: 11px; color: #8BA8C0; line-height: 1.4; }
+    .rec-badge  { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-bottom: 6px; }
+    .rec-badge.high   { background: rgba(235,87,87,0.2);   color: #EB5757; }
+    .rec-badge.medium { background: rgba(242,153,74,0.2);  color: #F2994A; }
+    .rec-badge.low    { background: rgba(39,174,96,0.2);   color: #27AE60; }
+
+    .claude-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-primary  { background: #D4AF37; color: #002035; }
+    .btn-secondary{ background: rgba(255,255,255,0.12); color: #fff; }
+    .btn-danger   { background: rgba(235,87,87,0.15); color: #EB5757; border: 1px solid rgba(235,87,87,0.3); }
+    .claude-ts    { font-size: 11px; color: #7EA8C4; }
+
+    /* ── Filters ── */
+    .filters {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(0,32,53,0.08);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters label { font-size: 12px; font-weight: 600; color: #7EA8C4; margin-right: 4px; }
+    .filters select, .filters input {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,32,53,0.15);
+      font-size: 13px;
+      color: #002035;
+      background: #F5F3EF;
+    }
+    .filter-group { display: flex; align-items: center; gap: 6px; }
+    .filters .spacer { flex: 1; }
+    .csv-btn { margin-left: auto; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid rgba(0,32,53,0.08);
+      overflow: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: #002035;
+      color: #7EA8C4;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-align: left;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+    }
+    tbody tr { border-bottom: 1px solid rgba(0,32,53,0.06); transition: background 0.1s; }
+    tbody tr:hover { background: rgba(0,32,53,0.03); }
+    tbody td { padding: 10px 14px; vertical-align: top; }
+
+    .token-cell { display: flex; align-items: center; gap: 7px; }
+    .token-icon {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #002035; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .token-name { font-weight: 600; }
+
+    .side-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-size: 10px; font-weight: 700;
+    }
+    .side-badge.LONG  { background: rgba(39,174,96,0.15);  color: #27AE60; }
+    .side-badge.SHORT { background: rgba(235,87,87,0.15);  color: #EB5757; }
+
+    .stars { color: #D4AF37; letter-spacing: 1px; }
+
+    .pnl-pos { color: #27AE60; font-weight: 600; }
+    .pnl-neg { color: #EB5757; font-weight: 600; }
+
+    .reason-cell { max-width: 220px; }
+    .reason-open  { font-size: 11px; color: #27AE60; line-height: 1.4; margin-bottom: 3px; }
+    .reason-close { font-size: 11px; color: #7EA8C4; line-height: 1.4; }
+    .reason-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+
+    .dur-short { color: #EB5757; font-weight: 600; }
+    .dur-normal { color: #002035; }
+
+    .empty { padding: 40px; text-align: center; color: #7EA8C4; font-size: 14px; }
+    .loading { padding: 40px; text-align: center; color: #7EA8C4; }
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid rgba(0,32,53,0.2); border-top-color: #002035;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .positives { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .positive-tag {
+      background: rgba(39,174,96,0.15); color: #27AE60;
+      font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    }
+    .issues-list { margin: 8px 0; }
+    .issue-item { font-size: 12px; color: #F2994A; margin-bottom: 4px; padding-left: 12px; position: relative; }
+    .issue-item::before { content: '⚠'; position: absolute; left: 0; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="back-link">← Dashboard</a>
+  <h1>⚔ Trade Log</h1>
+  <span class="sub" id="lastUpdate">Laden…</span>
+</div>
+
+<div class="page">
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card"><div class="label">Trades</div><div class="value" id="statTotal">—</div></div>
+    <div class="stat-card"><div class="label">Winrate</div><div class="value" id="statWinrate">—</div></div>
+    <div class="stat-card"><div class="label">Gem. winst</div><div class="value green" id="statAvgWin">—</div></div>
+    <div class="stat-card"><div class="label">Gem. verlies</div><div class="value red" id="statAvgLoss">—</div></div>
+    <div class="stat-card"><div class="label">Totaal P&L</div><div class="value" id="statPnl">—</div></div>
+    <div class="stat-card"><div class="label">Gem. duur</div><div class="value" id="statDur">—</div></div>
+    <div class="stat-card"><div class="label">Korte trades (&lt;1u)</div><div class="value red" id="statShort">—</div></div>
+  </div>
+
+  <!-- Claude AI Analysis Panel -->
+  <div class="claude-panel">
+    <h2>🤖 Claude AI Analyse</h2>
+    <div id="claudeContent">
+      <div class="summary" style="color:#7EA8C4;">Nog geen analyse beschikbaar. Klik op "Analyseer nu" om Claude je trades te laten analyseren en parameter aanbevelingen te genereren.</div>
+    </div>
+    <div class="claude-actions">
+      <button class="btn btn-primary" id="btnAnalyze" onclick="runAnalysis()">🔍 Analyseer nu</button>
+      <button class="btn btn-secondary" onclick="loadAnalysis()">↻ Ververs</button>
+      <button class="btn btn-secondary" id="btnCopy" onclick="copyForAnalysis()" title="Kopieer trade data naar klembord — plak in Claude chat voor handmatige analyse">📋 Kopieer voor analyse</button>
+      <span class="claude-ts" id="claudeTs"></span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Coin:</label>
+      <select id="filterToken" onchange="applyFilters()">
+        <option value="">Alle</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Resultaat:</label>
+      <select id="filterResult" onchange="applyFilters()">
+        <option value="">Alle</option>
+        <option value="win">Wins</option>
+        <option value="loss">Verliezen</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sluitreden:</label>
+      <select id="filterReason" onchange="applyFilters()">
+        <option value="">Alle</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Min. sterren:</label>
+      <select id="filterStars" onchange="applyFilters()">
+        <option value="">Alle</option>
+        <option value="3">★★★+</option>
+        <option value="4">★★★★+</option>
+        <option value="5">★★★★★</option>
+      </select>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn btn-secondary" onclick="exportCSV()" style="background:#002035; color:#fff;">⬇ CSV</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="loading" id="loadingEl"><div class="spinner"></div><br><br>Trades laden…</div>
+    <table id="tradeTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Coin</th>
+          <th>Side</th>
+          <th>★</th>
+          <th>Entry</th>
+          <th>Exit</th>
+          <th>P&L %</th>
+          <th>Duur</th>
+          <th>Reden openen</th>
+          <th>Reden sluiten</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty" id="emptyEl" style="display:none;">Geen trades gevonden.</div>
+  </div>
+
+</div>
+
+<script>
+let allTrades = [];
+
+const TOKEN_COLORS = {
+  BTC:'#002035', ETH:'#627EEA', SOL:'#9945FF', BNB:'#F3BA2F',
+  HBAR:'#222222', XRP:'#00AAE4', AVAX:'#E84142', LINK:'#375BD2',
+  ADA:'#0033AD', DOT:'#E6007A', DOGE:'#C3A634', SUI:'#4DA2FF',
+  TRX:'#FF0013', XLM:'#000000', POL:'#8247E5',
+  RENDER:'#FF4D00', TAO:'#5C4EE5', FET:'#1A1A2E', NEAR:'#00C08B', GRT:'#6747ED',
+};
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('nl-BE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+function fmtDur(min) {
+  if (min == null) return '—';
+  if (min < 60)  return `${min}min`;
+  if (min < 1440) return `${Math.round(min/60)}u`;
+  return `${Math.round(min/1440)}d`;
+}
+function stars(n) {
+  if (!n) return '—';
+  return '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n));
+}
+
+// ── Load trades ──
+async function loadTrades() {
+  try {
+    const r = await fetch('/api/trade-log?limit=200');
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    allTrades = d.trades || [];
+    buildFilters();
+    renderStats(allTrades);
+    renderTable(allTrades);
+    document.getElementById('lastUpdate').textContent = `${allTrades.length} trades · ${new Date().toLocaleTimeString('nl-BE')}`;
+  } catch (e) {
+    document.getElementById('loadingEl').innerHTML = `<span style="color:#EB5757;">Fout: ${e.message}</span>`;
+  }
+}
+
+function buildFilters() {
+  // Token filter
+  const tokens = [...new Set(allTrades.map(t => t.token).filter(Boolean))].sort();
+  const ts = document.getElementById('filterToken');
+  tokens.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; ts.appendChild(o); });
+
+  // Reason filter
+  const reasons = [...new Set(allTrades.map(t => t.closeReason?.split(' ')[0]).filter(Boolean))].sort();
+  const rs = document.getElementById('filterReason');
+  reasons.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; rs.appendChild(o); });
+}
+
+function applyFilters() {
+  const token  = document.getElementById('filterToken').value;
+  const result = document.getElementById('filterResult').value;
+  const reason = document.getElementById('filterReason').value;
+  const minSt  = parseInt(document.getElementById('filterStars').value || '0');
+
+  let filtered = allTrades;
+  if (token)  filtered = filtered.filter(t => t.token === token);
+  if (result === 'win')  filtered = filtered.filter(t => (t.pnl || 0) > 0);
+  if (result === 'loss') filtered = filtered.filter(t => (t.pnl || 0) < 0);
+  if (reason) filtered = filtered.filter(t => t.closeReason?.startsWith(reason));
+  if (minSt)  filtered = filtered.filter(t => (t.stars || 0) >= minSt);
+
+  renderStats(filtered);
+  renderTable(filtered);
+}
+
+function renderStats(trades) {
+  const wins   = trades.filter(t => (t.pnl || 0) > 0);
+  const losses = trades.filter(t => (t.pnl || 0) < 0);
+  const short  = trades.filter(t => t.durationMin != null && t.durationMin < 60);
+  const totalPnl = trades.reduce((s, t) => s + (t.pnlPct || 0), 0);
+  const avgWin   = wins.length   ? wins.reduce((s,t)   => s + (t.pnlPct||0), 0) / wins.length   : 0;
+  const avgLoss  = losses.length ? losses.reduce((s,t) => s + (t.pnlPct||0), 0) / losses.length : 0;
+  const durs     = trades.filter(t => t.durationMin != null).map(t => t.durationMin);
+  const avgDur   = durs.length ? durs.reduce((a,b) => a+b, 0) / durs.length : 0;
+  const wr       = trades.length ? (wins.length / trades.length * 100) : 0;
+
+  document.getElementById('statTotal').textContent   = trades.length;
+  document.getElementById('statWinrate').textContent = trades.length ? `${wr.toFixed(0)}%` : '—';
+  document.getElementById('statAvgWin').textContent  = wins.length   ? `+${avgWin.toFixed(1)}%`  : '—';
+  document.getElementById('statAvgLoss').textContent = losses.length ? `${avgLoss.toFixed(1)}%`  : '—';
+  document.getElementById('statPnl').textContent     = trades.length ? `${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(1)}%` : '—';
+  document.getElementById('statDur').textContent     = durs.length   ? fmtDur(Math.round(avgDur)) : '—';
+  document.getElementById('statShort').textContent   = short.length;
+
+  const pnlEl = document.getElementById('statPnl');
+  pnlEl.className = 'value ' + (totalPnl >= 0 ? 'green' : 'red');
+}
+
+function renderTable(trades) {
+  document.getElementById('loadingEl').style.display = 'none';
+  const tbody = document.getElementById('tableBody');
+
+  if (!trades.length) {
+    document.getElementById('tradeTable').style.display = 'none';
+    document.getElementById('emptyEl').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('tradeTable').style.display = 'table';
+  document.getElementById('emptyEl').style.display = 'none';
+
+  tbody.innerHTML = trades.map(t => {
+    const color  = TOKEN_COLORS[t.token] || '#002035';
+    const pnlCls = (t.pnl || 0) >= 0 ? 'pnl-pos' : 'pnl-neg';
+    const pnlTxt = t.pnlPct != null ? `${t.pnlPct >= 0 ? '+' : ''}${t.pnlPct}%` : '—';
+    const durCls = t.durationMin != null && t.durationMin < 60 ? 'dur-short' : 'dur-normal';
+
+    return `<tr>
+      <td style="white-space:nowrap; font-size:12px; color:#7EA8C4;">${fmtDate(t.closeTime)}</td>
+      <td>
+        <div class="token-cell">
+          <div class="token-icon" style="background:${color};">${(t.token||'?')[0]}</div>
+          <span class="token-name">${t.token || '?'}</span>
+        </div>
+      </td>
+      <td><span class="side-badge ${t.side}">${t.side || '?'}</span></td>
+      <td><span class="stars" style="font-size:11px;">${stars(t.stars)}</span></td>
+      <td style="font-size:12px;">${t.entryPrice ? t.entryPrice.toFixed(4) : '—'}</td>
+      <td style="font-size:12px;">${t.exitPrice  ? t.exitPrice.toFixed(4)  : '—'}</td>
+      <td class="${pnlCls}">${pnlTxt}</td>
+      <td class="${durCls}">${fmtDur(t.durationMin)}</td>
+      <td class="reason-cell">
+        <div class="reason-label" style="color:#27AE60;">OPEN</div>
+        <div class="reason-open">${t.openReason || '—'}</div>
+      </td>
+      <td class="reason-cell">
+        <div class="reason-label" style="color:#7EA8C4;">SLUIT</div>
+        <div class="reason-close">${t.closeReason || '—'}</div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Claude Analysis ──
+async function loadAnalysis() {
+  try {
+    const r = await fetch('/api/claude-analyzer');
+    const d = await r.json();
+    if (d.recommendations) renderAnalysis(d.recommendations);
+  } catch (e) { /* stil */ }
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('btnAnalyze');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyseren…';
+
+  const token = prompt('Voer je bot token in (PAPER_ENGINE_SECRET):');
+  if (!token) { btn.disabled = false; btn.textContent = '🔍 Analyseer nu'; return; }
+
+  try {
+    const r = await fetch('/api/claude-analyzer', {
+      method: 'POST',
+      headers: { 'x-bot-token': token, 'Content-Type': 'application/json' },
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || d.message);
+    renderAnalysis(d.analysis);
+  } catch (e) {
+    alert('Fout: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 Analyseer nu';
+  }
+}
+
+function renderAnalysis(a) {
+  if (!a) return;
+  const ts = a.analyzedAt ? new Date(a.analyzedAt).toLocaleString('nl-BE') : '';
+  document.getElementById('claudeTs').textContent = ts ? `Laatste analyse: ${ts} · ${a.tradesAnalyzed || '?'} trades` : '';
+
+  let html = '';
+
+  if (a.summary) html += `<div class="summary">${a.summary}</div>`;
+
+  if (a.issues?.length) {
+    html += `<div class="issues-list">${a.issues.map(i => `<div class="issue-item">${i}</div>`).join('')}</div>`;
+  }
+
+  if (a.recommendations?.length) {
+    html += `<div class="recs-grid">`;
+    html += a.recommendations.map(r => `
+      <div class="rec-card ${r.priority || 'medium'}">
+        <span class="rec-badge ${r.priority || 'medium'}">${(r.priority||'medium').toUpperCase()}</span>
+        <div class="rec-param">${r.parameter}</div>
+        <div class="rec-change">${r.currentValue} → <strong>${r.suggestedValue}</strong></div>
+        <div class="rec-reason">${r.reason}</div>
+      </div>
+    `).join('');
+    html += `</div>`;
+  }
+
+  if (a.positives?.length) {
+    html += `<div class="positives" style="margin-top:12px;">${a.positives.map(p => `<span class="positive-tag">✓ ${p}</span>`).join('')}</div>`;
+  }
+
+  document.getElementById('claudeContent').innerHTML = html || '<div class="summary" style="color:#7EA8C4;">Geen aanbevelingen beschikbaar.</div>';
+}
+
+function exportCSV() {
+  window.open('/api/trade-log?limit=500&format=csv', '_blank');
+}
+
+// ── Copy for manual analysis ──
+async function copyForAnalysis() {
+  const btn = document.getElementById('btnCopy');
+  const trades = allTrades.slice(0, 50);
+
+  if (!trades.length) {
+    alert('Nog geen trades geladen.');
+    return;
+  }
+
+  const wins   = trades.filter(t => (t.pnl || 0) > 0);
+  const losses = trades.filter(t => (t.pnl || 0) < 0);
+  const wr     = trades.length ? (wins.length / trades.length * 100).toFixed(0) : 0;
+  const avgWin = wins.length   ? (wins.reduce((s,t) => s + (t.pnlPct||0), 0) / wins.length).toFixed(1) : 0;
+  const avgLoss= losses.length ? (losses.reduce((s,t) => s + (t.pnlPct||0), 0) / losses.length).toFixed(1) : 0;
+  const short  = trades.filter(t => t.durationMin != null && t.durationMin < 60).length;
+
+  const reasons = {};
+  trades.forEach(t => {
+    const r = (t.closeReason || 'Onbekend').split(' ')[0];
+    reasons[r] = (reasons[r] || 0) + 1;
+  });
+
+  const lines = [
+    '## Camelot Bot — Trade Analyse Request',
+    '',
+    `**Samenvatting (laatste ${trades.length} trades):**`,
+    `- Winrate: ${wr}%`,
+    `- Gemiddelde winst: +${avgWin}%`,
+    `- Gemiddeld verlies: ${avgLoss}%`,
+    `- Wins: ${wins.length} | Verliezen: ${losses.length}`,
+    `- Trades < 1 uur: ${short}`,
+    '',
+    '**Sluitredenen:**',
+    ...Object.entries(reasons).map(([r, c]) => `- ${r}: ${c}×`),
+    '',
+    '**Laatste 30 trades (coin | ★ | P&L% | duur | openreden | sluitreden):**',
+    ...trades.slice(0, 30).map(t =>
+      `${t.token} | ${t.stars ? t.stars + '★' : '?'} | ${t.pnlPct != null ? (t.pnlPct >= 0 ? '+' : '') + t.pnlPct + '%' : '?'} | ${t.durationMin != null ? t.durationMin + 'min' : '?'} | ${t.openReason || '?'} | ${t.closeReason || '?'}`
+    ),
+    '',
+    '**Vraag:** Analyseer deze trades en geef concrete aanbevelingen voor parameter aanpassingen.',
+  ];
+
+  const text = lines.join('
+');
+
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Gekopieerd!';
+    btn.style.background = '#27AE60';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = '📋 Kopieer voor analyse';
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 2500);
+  } catch (e) {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Gekopieerd!';
+    setTimeout(() => { btn.textContent = '📋 Kopieer voor analyse'; }, 2500);
+  }
+}
+
+// ── Init ──
+loadTrades();
+loadAnalysis();
+</script>
+</body>
+</html>

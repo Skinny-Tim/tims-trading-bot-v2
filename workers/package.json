@@ -1,0 +1,16 @@
+{
+  "name": "merlin-tick-worker",
+  "version": "1.0.0",
+  "description": "ms-latency Binance tick-driven stop/target trigger voor Merlin paper-trading (24/7 zonder browser)",
+  "main": "tick-worker.js",
+  "private": true,
+  "scripts": {
+    "start": "node tick-worker.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

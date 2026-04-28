@@ -1,0 +1,12 @@
+{
+  "_version": 2,
+  "_updated": "2026-04-14",
+  "_updatedBy": "ew-tuner",
+  "_label": "PL5_PR3",
+  "pivotLen": 5,
+  "provisionalLen": 3,
+  "_scoreBaseline": -0.00013732630963623137,
+  "_winrate": 0.5139813581890812,
+  "_trades": 2253,
+  "_lastTunerRun": "2026-04-14T20:03:04.243Z"
+}

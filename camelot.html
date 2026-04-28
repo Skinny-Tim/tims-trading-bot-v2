@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camelot — Regime-Switching Paper Bot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F5F3EF; color: #002035; padding: 20px; min-height: 100vh; }
+  .dashboard { max-width: 1200px; margin: 0 auto; }
+  .top-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .top-bar-left h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .top-bar-left .subtitle { font-size: 13px; color: #4a6a80; margin-top: 2px; }
+  .top-bar-right { text-align: right; }
+  .balance-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #4a6a80; }
+  .balance-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4a6a80; text-decoration: none; margin-bottom: 16px; font-weight: 500; }
+  .back-link:hover { color: #002035; }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(4, 1fr); margin-bottom: 24px; }
+  .stat-card { background: white; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,32,53,0.06); }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #4a6a80; }
+  .stat-value { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 12px; color: #4a6a80; margin-top: 2px; }
+  .pos { color: #2E7D32; }
+  .neg { color: #C62828; }
+  .neutral { color: #4a6a80; }
+
+  .card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,32,53,0.06); margin-bottom: 18px; }
+  .card-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #4a6a80; margin-bottom: 14px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-weight: 600; color: #4a6a80; padding: 8px 10px; border-bottom: 1px solid rgba(0,32,53,0.08); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px; border-bottom: 1px solid rgba(0,32,53,0.05); }
+  tr:hover td { background: rgba(0,32,53,0.02); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .badge-long { background: rgba(46,125,50,0.12); color: #2E7D32; }
+  .badge-short { background: rgba(198,40,40,0.12); color: #C62828; }
+  .badge-trend { background: rgba(1,45,76,0.10); color: #012D4C; }
+  .badge-range { background: rgba(255,152,0,0.12); color: #F57C00; }
+  .badge-no { background: rgba(0,32,53,0.06); color: #4a6a80; }
+
+  .empty { text-align: center; padding: 30px; color: #4a6a80; font-size: 13px; }
+
+  #equityChart { width: 100%; height: 240px; }
+
+  .row-flex { display: flex; gap: 18px; }
+  .row-flex > * { flex: 1; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } .row-flex { flex-direction: column; } }
+
+  .strategy-note { font-size: 12px; color: #4a6a80; line-height: 1.5; padding: 10px 14px; background: rgba(1,45,76,0.04); border-radius: 8px; margin-top: 12px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 8px 14px; border-radius: 8px; border: none; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; background: #012D4C; color: #F5F3EF; }
+  .btn:hover { background: #002035; }
+  .btn-ghost { background: rgba(0,32,53,0.08); color: #002035; }
+  .btn-ghost:hover { background: rgba(0,32,53,0.14); }
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <a href="/" class="back-link">← terug naar Camelot</a>
+
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>⚔️ Camelot Paper Bot</h1>
+      <div class="subtitle"><span class="live-dot"></span>Regime-switching mean-reversion + momentum · Binance spot (USDT) · 1H · €10.000 base</div>
+    </div>
+    <div class="top-bar-right">
+      <div class="balance-label">Portfolio Value</div>
+      <div class="balance-value" id="pv">—</div>
+      <div class="balance-label" style="margin-top:6px;">Total P&L</div>
+      <div id="totalPnl" style="font-size:14px; font-weight:600;">—</div>
+      <div id="fxRate" style="font-size:10px;color:#7a8a90;margin-top:6px;" title="USDT-prijzen × deze rate = EUR (ECB via Frankfurter, 1u cache)">FX: loading…</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="stat-card"><div class="stat-label">Cash</div><div class="stat-value" id="cash">—</div><div class="stat-sub" id="cashSub">— allocated in trades</div></div>
+    <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value" id="openCount">—</div><div class="stat-sub" id="openSub">/5 max</div></div>
+    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value" id="winRate">—</div><div class="stat-sub" id="wlSub">— W / — L</div></div>
+    <div class="stat-card"><div class="stat-label">Max Drawdown</div><div class="stat-value" id="maxDd">—</div><div class="stat-sub" id="ddSub">since inception</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-card"><div class="stat-label">Totale Kosten Betaald</div><div class="stat-value neg" id="totalCosts">—</div><div class="stat-sub" id="costsSub">over gesloten trades</div></div>
+    <div class="stat-card"><div class="stat-label">Open Estimated Kosten</div><div class="stat-value neg" id="openCosts">—</div><div class="stat-sub">entry + est. exit + slip</div></div>
+    <div class="stat-card"><div class="stat-label">Cost Drag</div><div class="stat-value" id="costDrag">—</div><div class="stat-sub">% van P&L verloren aan fees</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      Equity Curve
+      <span style="font-size:11px;font-weight:500;text-transform:none;letter-spacing:0;color:#4a6a80;" id="equityMeta">—</span>
+    </div>
+    <canvas id="equityChart"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      Open Positions <span style="font-size:11px;font-weight:500;color:#4a6a80;text-transform:none;letter-spacing:0;" id="posMeta">—</span>
+    </div>
+    <div id="positionsBlock"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      Live Signals <button class="btn btn-ghost" onclick="loadSignals()">refresh</button>
+    </div>
+    <div id="signalsBlock" class="empty">— click refresh to load —</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recent Trades</div>
+    <div id="tradesBlock"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Strategy</div>
+    <div class="strategy-note">
+      <strong>RANGE</strong> (ADX&lt;20): Bollinger Band mean-reversion — Long bij lower band + RSI&lt;35, Short bij upper band + RSI&gt;65. Stop 1×ATR voorbij band, target = midline. Doel: hoge WR, R:R ~1.<br><br>
+      <strong>TREND</strong> (ADX&gt;25): EMA20/50 momentum pullback — Long in bull trend bij dip naar EMA20, Short in bear trend bij rally naar EMA20. Stop 1.5×ATR, target 3×ATR (R:R 2.0), trail activeert bij +1.5R.<br><br>
+      <strong>NO_TRADE</strong> (ADX 20-25): geen edge in chop, blijf eraf.<br><br>
+      <strong>Risk</strong>: 1% equity per trade, max 5 simultaan, 25% size cap. <strong>Costs</strong>: Binance 10 bps taker + 5 bps slippage per leg.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Controls</div>
+    <div class="controls">
+      <button class="btn" onclick="manualTick()">▶ Run Tick Now</button>
+      <button class="btn btn-ghost" onclick="loadState()">⟳ Refresh</button>
+      <button class="btn btn-ghost" onclick="if(confirm('Reset Camelot state? All trades wiped.')) resetBot()">⚠ Reset State</button>
+      <span style="font-size:12px;color:#4a6a80;align-self:center;margin-left:auto;" id="lastTick">last tick: —</span>
+    </div>
+    <div id="tunedMetaWarning" style="display:none; margin-top:10px; padding:10px 14px; background:#fef2f2; border:1px solid #fca5a5; border-left:4px solid #dc2626; border-radius:6px; font-size:12px; color:#7f1d1d; line-height:1.5;"></div>
+  </div>
+</div>
+
+<script>
+// USDT → EUR conversie via window._fxUsdtToEur (gezet door FX widget).
+// Fallback: 1.0 (toon raw USDT als rate niet geladen).
+// ALLE money-displays in deze file gebruiken fmt/fmtPrice, dus we converteren
+// op deze ene plek. Percentages (fmtPct) en counts blijven ongewijzigd.
+const _toEur = (v) => (Number(v) || 0) * (typeof window !== 'undefined' && window._fxUsdtToEur ? window._fxUsdtToEur : 1);
+const fmt = (n, d=2) => n == null || isNaN(n) ? '—' : Number(_toEur(n)).toLocaleString('nl-BE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtPrice = (n) => {
+  if (n == null) return '—';
+  const v = _toEur(n);
+  return v < 0.01 ? v.toFixed(6) : v < 1 ? v.toFixed(4) : v < 100 ? v.toFixed(2) : v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+};
+const fmtPct = (n) => n == null ? '—' : (n>=0?'+':'') + n.toFixed(2) + '%';
+const cls = (n) => n > 0 ? 'pos' : n < 0 ? 'neg' : 'neutral';
+
+let lastState = null;
+
+async function loadState() {
+  try {
+    const r = await fetch('/api/camelot-engine?action=state');
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'load fail');
+    lastState = d;
+    render(d);
+  } catch (e) {
+    document.getElementById('pv').textContent = 'ERR';
+    console.error(e);
+  }
+}
+
+function render(d) {
+  const startBal = d.state.startBalance || 10000;
+  const pv = d.portfolioValue || 0;
+  const pnl = pv - startBal;
+  const pnlPct = (pnl / startBal) * 100;
+
+  document.getElementById('pv').textContent = '€' + fmt(pv, 2);
+  const tp = document.getElementById('totalPnl');
+  tp.textContent = (pnl>=0?'+':'') + '€' + fmt(pnl, 2) + ' (' + fmtPct(pnlPct) + ')';
+  tp.className = cls(pnl);
+
+  document.getElementById('cash').textContent = '€' + fmt(d.state.balance, 0);
+  const allocated = pv - (d.state.balance || 0);
+  document.getElementById('cashSub').textContent = '€' + fmt(allocated, 0) + ' allocated in trades';
+
+  document.getElementById('openCount').textContent = d.positions.length;
+  document.getElementById('openSub').textContent = '/5 max · ' + (d.state.ticks || 0) + ' ticks';
+
+  const wr = d.stats.winRate * 100;
+  document.getElementById('winRate').textContent = d.stats.trades > 0 ? wr.toFixed(0) + '%' : '—';
+  document.getElementById('wlSub').textContent = d.stats.wins + ' W / ' + d.stats.losses + ' L · PF ' + (d.stats.profitFactor || 0).toFixed(2);
+
+  document.getElementById('maxDd').textContent = (d.stats.maxDrawdown * 100).toFixed(1) + '%';
+  document.getElementById('ddSub').textContent = 'peak €' + fmt(d.state.peakEquity || startBal, 0);
+
+  // Equity meta
+  document.getElementById('equityMeta').textContent = d.equity.length + ' points · since ' + (d.equity[0] ? new Date(d.equity[0].time).toLocaleDateString('nl-BE') : '—');
+
+  // Cost stats — Binance taker 10 bps + slippage 5 bps per leg = 30 bps RT
+  const FEE_BPS = 10, SLIP_BPS = 5;
+  const totalFeesPaid = (d.trades || []).reduce((s, t) => s + (t.fees || 0), 0);
+  let openEstCost = 0;
+  for (const p of (d.positions || [])) {
+    const entryFee = p.entryFee || (p.sizeUsd * FEE_BPS / 10000);
+    const liveValue = p.qty * (p.livePrice || p.entryPrice);
+    const estExitFee = liveValue * FEE_BPS / 10000;
+    const estSlip = (p.sizeUsd + liveValue) * SLIP_BPS / 10000;
+    openEstCost += entryFee + estExitFee + estSlip;
+  }
+  document.getElementById('totalCosts').textContent = '−€' + fmt(totalFeesPaid, 2);
+  document.getElementById('costsSub').textContent = (d.trades || []).length + ' gesloten trades · ' + (FEE_BPS + SLIP_BPS*2) + ' bps RT';
+  document.getElementById('openCosts').textContent = '−€' + fmt(openEstCost, 2);
+  // Cost drag = fees / |grossPnl| where grossPnl = netPnl + fees
+  const grossPnl = (d.trades || []).reduce((s, t) => s + (t.pnl || 0) + (t.fees || 0), 0);
+  const drag = grossPnl !== 0 ? (totalFeesPaid / Math.abs(grossPnl)) * 100 : 0;
+  const cd = document.getElementById('costDrag');
+  cd.textContent = totalFeesPaid > 0 ? drag.toFixed(1) + '%' : '—';
+  cd.className = 'stat-value ' + (drag > 50 ? 'neg' : drag > 25 ? 'neutral' : 'pos');
+
+  drawEquity(d.equity, startBal);
+  renderPositions(d.positions);
+  renderTrades(d.trades);
+
+  document.getElementById('lastTick').textContent = 'last tick: ' + (d.state.lastTickTs ? new Date(d.state.lastTickTs).toLocaleString('nl-BE') : 'never');
+
+  // Tuned-params safety net warning — als getunede params in backtest verlies
+  // gaven, val terug op env/defaults en toon banner zodat user ziet dat tuner
+  // momenteel slecht presteert.
+  const warnEl = document.getElementById('tunedMetaWarning');
+  if (warnEl) {
+    const tm = d.tunedMeta;
+    if (tm && !tm.used && tm.reason) {
+      const sc = tm.score != null ? tm.score.toFixed(2) : '—';
+      const pf = tm.profitFactor != null ? tm.profitFactor.toFixed(2) : '—';
+      warnEl.style.display = 'block';
+      warnEl.innerHTML = '<strong>⚠ Tuner-params afgewezen</strong> — laatste backtest gaf verlies (score ' + sc + ', PF ' + pf + '). Bot gebruikt nu env/defaults tot tuner positieve params vindt. Volgende auto-tune: maandag 03:00.';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+}
+
+function renderPositions(positions) {
+  const block = document.getElementById('positionsBlock');
+  document.getElementById('posMeta').textContent = positions.length + ' open';
+  if (!positions.length) { block.innerHTML = '<div class="empty">No open positions — bot is in cash, waiting for signals.</div>'; return; }
+  // Costs: 10 bps Binance taker × 2 (entry+exit) + 5 bps slippage × 2 = 30 bps round-trip
+  const FEE_BPS = 10, SLIP_BPS = 5;
+  let html = '<table><thead><tr><th>Token</th><th>Side</th><th>Regime</th><th>Entry</th><th>Live</th><th>Stop</th><th>Target</th><th>uPnL</th><th>Kosten</th><th>Hold</th></tr></thead><tbody>';
+  for (const p of positions) {
+    const holdH = p.openTime ? ((Date.now() - p.openTime) / 3.6e6).toFixed(1) : '—';
+    const entryFee = p.entryFee || (p.sizeUsd * FEE_BPS / 10000);
+    const liveValue = p.qty * (p.livePrice || p.entryPrice);
+    const estExitFee = liveValue * FEE_BPS / 10000;
+    const estSlip = (p.sizeUsd + liveValue) * SLIP_BPS / 10000;
+    const totalCost = entryFee + estExitFee + estSlip;
+    html += `<tr>
+      <td><strong>${p.token}</strong></td>
+      <td><span class="badge ${p.side==='LONG'?'badge-long':'badge-short'}">${p.side}</span></td>
+      <td><span class="badge ${p.regime==='TREND'?'badge-trend':'badge-range'}">${p.regime}</span></td>
+      <td>€${fmtPrice(p.entryPrice)}</td>
+      <td>€${fmtPrice(p.livePrice)}</td>
+      <td>€${fmtPrice(p.stop)}</td>
+      <td>€${fmtPrice(p.target)}</td>
+      <td class="${cls(p.unrealizedPnl)}">${(p.unrealizedPnl>=0?'+':'')}€${fmt(p.unrealizedPnl,2)} (${fmtPct(p.unrealizedPct)})</td>
+      <td title="entry €${fmt(entryFee,2)} + est. exit €${fmt(estExitFee,2)} + slip €${fmt(estSlip,2)}" style="color:#C62828;">−€${fmt(totalCost,2)}</td>
+      <td>${holdH}u</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  block.innerHTML = html;
+}
+
+function renderTrades(trades) {
+  const block = document.getElementById('tradesBlock');
+  if (!trades.length) { block.innerHTML = '<div class="empty">No trades yet.</div>'; return; }
+  let html = '<table><thead><tr><th>When</th><th>Token</th><th>Side</th><th>Regime</th><th>Entry→Exit</th><th>P&L</th><th>Kosten</th><th>Reason</th></tr></thead><tbody>';
+  for (const t of trades.slice(0, 30)) {
+    const when = t.closeTime ? new Date(t.closeTime).toLocaleString('nl-BE', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    const fees = t.fees || 0;
+    html += `<tr>
+      <td>${when}</td>
+      <td><strong>${t.token}</strong></td>
+      <td><span class="badge ${t.side==='LONG'?'badge-long':'badge-short'}">${t.side}</span></td>
+      <td><span class="badge ${t.regime==='TREND'?'badge-trend':'badge-range'}">${t.regime||'—'}</span></td>
+      <td>€${fmtPrice(t.entryPrice)} → €${fmtPrice(t.exitPrice)}</td>
+      <td class="${cls(t.pnl)}">${(t.pnl>=0?'+':'')}€${fmt(t.pnl,2)} (${fmtPct(t.pnlPct)})</td>
+      <td style="color:#C62828;">−€${fmt(fees,2)}</td>
+      <td style="color:#4a6a80;font-size:12px;">${t.reason||'—'}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  block.innerHTML = html;
+}
+
+// Equity chart
+function drawEquity(equity, startBal) {
+  const c = document.getElementById('equityChart');
+  const dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight;
+  c.width = w * dpr; c.height = h * dpr;
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  if (!equity || equity.length < 2) {
+    ctx.fillStyle = '#4a6a80'; ctx.font = '13px Inter'; ctx.textAlign = 'center';
+    ctx.fillText('No data yet — run a tick to begin', w/2, h/2);
+    return;
+  }
+  const xs = equity.map(p => p.time);
+  const ys = equity.map(p => p.value);
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const yMin = Math.min(startBal * 0.95, ...ys), yMax = Math.max(startBal * 1.05, ...ys);
+  const pad = { l: 50, r: 16, t: 16, b: 24 };
+  const X = x => pad.l + (x - xMin) / (xMax - xMin || 1) * (w - pad.l - pad.r);
+  const Y = y => pad.t + (1 - (y - yMin) / (yMax - yMin || 1)) * (h - pad.t - pad.b);
+
+  // Start balance line
+  ctx.strokeStyle = 'rgba(0,32,53,0.15)'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, Y(startBal)); ctx.lineTo(w-pad.r, Y(startBal)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Y labels
+  ctx.fillStyle = '#4a6a80'; ctx.font = '11px Inter'; ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + (yMax - yMin) * (i/4);
+    ctx.fillText('€' + Math.round(_toEur(v)).toLocaleString(), pad.l - 6, Y(v) + 4);
+  }
+
+  // Path
+  ctx.strokeStyle = '#012D4C'; ctx.lineWidth = 2; ctx.beginPath();
+  equity.forEach((p, i) => {
+    const x = X(p.time), y = Y(p.value);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Fill under
+  ctx.lineTo(X(xs[xs.length-1]), h - pad.b); ctx.lineTo(X(xs[0]), h - pad.b);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(1,45,76,0.06)'; ctx.fill();
+}
+
+async function loadSignals() {
+  document.getElementById('signalsBlock').innerHTML = '<div class="empty">loading…</div>';
+  try {
+    // Parallel: signals + flow data
+    const [sigR, flowR] = await Promise.all([
+      fetch('/api/camelot-engine?action=signals').then(r => r.json()),
+      fetch('/api/camelot-engine?action=flow').then(r => r.json()).catch(() => ({ flow: {} })),
+    ]);
+    if (!sigR.ok) throw new Error(sigR.error || 'load fail');
+    const flowMap = flowR.flow || {};
+    let html = '<table><thead><tr><th>Token</th><th>Close</th><th>ADX</th><th>RSI</th><th>Regime</th><th>Signal</th><th>Stop / Target</th><th title="Composite flow score: funding + top-trader L/S + taker buy/sell + OB imbalance. + = bullish flow, - = bearish.">Flow</th></tr></thead><tbody>';
+    for (const s of sigR.signals) {
+      if (s.error) { html += `<tr><td>${s.token}</td><td colspan="7" style="color:#C62828;">${s.error}</td></tr>`; continue; }
+      const reg = s.regime || 'NO_TRADE';
+      const regBadge = reg==='TREND'?'badge-trend':reg==='RANGE'?'badge-range':'badge-no';
+      const sigCell = s.signal ? `<span class="badge ${s.signal.type==='BUY'?'badge-long':'badge-short'}">${s.signal.type}</span> <span style="font-size:11px;color:#4a6a80;">${s.signal.rationale}</span>` : '<span style="color:#4a6a80;">—</span>';
+      const st = s.signal ? `€${fmtPrice(s.signal.stop)} / €${fmtPrice(s.signal.target)}` : '—';
+      const f = flowMap[s.token];
+      let flowCell = '<span style="color:#4a6a80;">—</span>';
+      if (f && typeof f.score === 'number') {
+        const score = f.score;
+        const clr = score > 0.3 ? '#2E7D32' : score < -0.3 ? '#C62828' : '#4a6a80';
+        const arrow = score > 0.1 ? '▲' : score < -0.1 ? '▼' : '◆';
+        const tip = `funding ${(f.funding * 100).toFixed(3)}% / L:S ${f.longShortRatio?.toFixed(2)} / B:S ${f.buySellRatio?.toFixed(2)} / OB ${f.obImbalance?.toFixed(2)}`;
+        flowCell = `<span title="${tip}" style="color:${clr};font-weight:600;">${arrow} ${score.toFixed(2)}</span>`;
+      }
+      html += `<tr><td><strong>${s.token}</strong></td><td>€${fmtPrice(s.close)}</td><td>${s.adx||'—'}</td><td>${s.rsi||'—'}</td><td><span class="badge ${regBadge}">${reg}</span></td><td>${sigCell}</td><td>${st}</td><td>${flowCell}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    // Tuner status footer
+    let tunerInfo = '';
+    try {
+      const tr = await fetch('/data/camelot-params.json').then(r => r.json()).catch(() => null);
+      if (tr && tr._updated) {
+        const ago = Math.floor((Date.now() - new Date(tr._updated).getTime()) / 3600000);
+        const src = tr._source || 'unknown';
+        const score = tr._score != null ? `score ${Number(tr._score).toFixed(2)}` : '';
+        tunerInfo = `<div style="font-size:11px;color:#4a6a80;margin-top:8px;">⚙ Auto-tuner: ${src} · last update ${ago}h ago · ${score}</div>`;
+      }
+    } catch {}
+    document.getElementById('signalsBlock').innerHTML = html + tunerInfo;
+  } catch (e) {
+    document.getElementById('signalsBlock').innerHTML = '<div class="empty" style="color:#C62828;">' + e.message + '</div>';
+  }
+}
+
+async function manualTick() {
+  if (!confirm('Run a tick now? This opens/closes real paper trades.')) return;
+  try {
+    const r = await fetch('/api/camelot-engine?action=tick');
+    const d = await r.json();
+    alert('Tick result:\n' + JSON.stringify(d, null, 2).slice(0, 600));
+    loadState();
+  } catch (e) { alert('Tick fail: ' + e.message); }
+}
+
+async function resetBot() {
+  try {
+    await fetch('/api/camelot-engine?action=reset');
+    loadState();
+  } catch (e) { alert('Reset fail: ' + e.message); }
+}
+
+// FX rate refresh (1u cache server-side, 1u poll client)
+async function loadFx(){
+  try {
+    const r = await fetch('/api/fx?to=USDT').then(x => x.json());
+    if (r.ok) {
+      const el = document.getElementById('fxRate');
+      if (el) el.textContent = `1 USDT = €${r.rate.toFixed(4)} (${r.date})`;
+    }
+  } catch {}
+}
+loadFx();
+setInterval(loadFx, 3600 * 1000);
+
+loadState();
+setInterval(loadState, 30000);
+window.addEventListener('resize', () => lastState && drawEquity(lastState.equity, lastState.state.startBalance));
+</script>
+</body>
+</html>

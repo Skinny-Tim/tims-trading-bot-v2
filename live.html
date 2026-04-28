@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camelot Tim's Trading Bot — Live Operations</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    // Set theme BEFORE first paint to avoid FOUC.
+    (function () {
+      try {
+        var saved = localStorage.getItem('noa_theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) { /* localStorage blocked */ }
+    })();
+  </script>
+  <style>
+    :root {
+      /* Default theme = dark */
+      --bg-deep:     #06070b;
+      --bg:          #0a0b11;
+      --bg-elev:     #11131c;
+      --card:        rgba(17, 19, 28, 0.72);
+      --card-hover:  rgba(22, 25, 36, 0.85);
+      --border:      rgba(255, 255, 255, 0.06);
+      --border-mid:  rgba(255, 255, 255, 0.10);
+      --border-glow: rgba(129, 140, 248, 0.18);
+
+      --text:        #f4f5f8;
+      --text-soft:   #c5c7d1;
+      --text-dim:    #8a8d9b;
+      --text-muted:  #5a5e6e;
+
+      --green:       #34d399;
+      --green-dim:   rgba(52, 211, 153, 0.14);
+      --red:         #f87171;
+      --red-dim:     rgba(248, 113, 113, 0.14);
+      --amber:       #fbbf24;
+      --amber-dim:   rgba(251, 191, 36, 0.14);
+      --gold:        #fcd34d;
+      --accent:      #818cf8;
+      --accent-deep: #4f46e5;
+      --accent-dim:  rgba(129, 140, 248, 0.14);
+
+      --live-red:        #ef4444;
+      --live-red-deep:   #b91c1c;
+      --live-red-glow:   rgba(239, 68, 68, 0.35);
+
+      --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 40px rgba(0,0,0,0.45);
+      --shadow-glow: 0 0 0 1px var(--border-glow), 0 8px 32px rgba(79, 70, 229, 0.08);
+
+      --btn-bg:       rgba(255, 255, 255, 0.04);
+      --btn-bg-hover: rgba(255, 255, 255, 0.07);
+      --pill-bg:      rgba(255, 255, 255, 0.03);
+
+      --grid-line:    rgba(255,255,255,0.015);
+
+      --radius:    14px;
+      --radius-sm: 8px;
+    }
+
+    /* ── Light theme override ─────────────────────────────────────── */
+    html[data-theme="light"] {
+      --bg-deep:     #eef0f6;
+      --bg:          #f4f6fb;
+      --bg-elev:     #ffffff;
+      --card:        rgba(255, 255, 255, 0.85);
+      --card-hover:  rgba(248, 250, 254, 0.95);
+      --border:      rgba(15, 18, 30, 0.08);
+      --border-mid:  rgba(15, 18, 30, 0.14);
+      --border-glow: rgba(99, 102, 241, 0.22);
+
+      --text:        #0f1320;
+      --text-soft:   #2c3142;
+      --text-dim:    #5a5e6e;
+      --text-muted:  #8a8d9b;
+
+      --green:       #059669;
+      --green-dim:   rgba(5, 150, 105, 0.10);
+      --red:         #dc2626;
+      --red-dim:     rgba(220, 38, 38, 0.08);
+      --amber:       #d97706;
+      --amber-dim:   rgba(217, 119, 6, 0.10);
+      --gold:        #b45309;
+      --accent:      #6366f1;
+      --accent-deep: #4338ca;
+      --accent-dim:  rgba(99, 102, 241, 0.10);
+
+      --shadow-card: 0 1px 0 rgba(255,255,255,0.7) inset, 0 8px 28px rgba(15, 18, 30, 0.08);
+      --shadow-glow: 0 0 0 1px var(--border-glow), 0 8px 24px rgba(99, 102, 241, 0.10);
+
+      --btn-bg:       rgba(15, 18, 30, 0.04);
+      --btn-bg-hover: rgba(15, 18, 30, 0.08);
+      --pill-bg:      rgba(15, 18, 30, 0.03);
+
+      --grid-line:    rgba(15, 18, 30, 0.04);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-feature-settings: "ss01", "cv11";
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.005em;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(239, 68, 68, 0.10), transparent 45%),
+        radial-gradient(ellipse at 85% 100%, rgba(79, 70, 229, 0.10), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(129, 140, 248, 0.04), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    html[data-theme="light"] body::before {
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(220, 38, 38, 0.06), transparent 45%),
+        radial-gradient(ellipse at 85% 100%, rgba(99, 102, 241, 0.08), transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.03), transparent 60%);
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    }
+
+    /* ── LIVE banner ───────────────────────────────────────────────── */
+    .live-banner {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(90deg, var(--live-red-deep) 0%, var(--live-red) 50%, var(--live-red-deep) 100%);
+      padding: 8px 20px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-align: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 30px var(--live-red-glow);
+      border-bottom: 1px solid rgba(0,0,0,0.4);
+    }
+    .live-banner .dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 10px;
+      box-shadow: 0 0 12px #fff;
+      animation: live-blink 1.4s infinite;
+      vertical-align: middle;
+    }
+    @keyframes live-blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.25; }
+    }
+
+    .container {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand .logo {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 60%, #c4b5fd 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(79, 70, 229, 0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+      letter-spacing: -0.04em;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+    .brand-text .title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-text .title .o-slash {
+      display: inline-block;
+      position: relative;
+    }
+    .brand-text .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .brand-text .subtitle .live-tag {
+      background: linear-gradient(135deg, var(--live-red), var(--live-red-deep));
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      font-size: 9px;
+      vertical-align: 1px;
+      box-shadow: 0 2px 8px var(--live-red-glow);
+    }
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ts-pill {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      padding: 7px 12px;
+      background: var(--pill-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+    .btn {
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      letter-spacing: -0.005em;
+    }
+    .btn:hover {
+      background: var(--btn-bg-hover);
+      border-color: var(--border-mid);
+      color: var(--text);
+    }
+    .btn.icon-only {
+      padding: 8px 10px;
+      min-width: 36px;
+      justify-content: center;
+    }
+    .theme-icon { font-size: 14px; line-height: 1; }
+    html[data-theme="light"] .theme-icon-dark { display: none; }
+    html:not([data-theme="light"]) .theme-icon-light { display: none; }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    }
+    .btn.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ── Hero summary ──────────────────────────────────────────────── */
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 22px 26px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(129,140,248,0.10), transparent 60%),
+        var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+    }
+    .hero-stat .label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .hero-stat .val {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .hero-stat .val.green { color: var(--green); }
+    .hero-stat .val.red   { color: var(--red); }
+    .hero-stat .sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Env bar ───────────────────────────────────────────────────── */
+    .env-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      margin-bottom: 18px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .env-item {
+      padding: 12px 16px;
+      background: var(--bg-elev);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .env-item .label {
+      color: var(--text-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+    .env-item .value {
+      font-weight: 600;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .env-item .value.testnet { color: var(--amber); }
+    .env-item .value.mainnet { color: var(--green); }
+    .env-item .value.off     { color: var(--text-muted); }
+
+    /* ── Panic bar ─────────────────────────────────────────────────── */
+    .panic-bar {
+      background:
+        linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(185, 28, 28, 0.04)),
+        var(--bg-elev);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .panic-bar .info {
+      font-size: 12px;
+      color: #fecaca;
+      display: flex; align-items: center; gap: 10px;
+    }
+    html[data-theme="light"] .panic-bar .info { color: #b91c1c; }
+    html[data-theme="light"] .btn-preview-panic { color: #b91c1c; }
+    html[data-theme="light"] .error-box { color: #92400e; }
+    .panic-bar .info .icon {
+      font-size: 16px;
+    }
+    .btn-panic {
+      background: linear-gradient(135deg, var(--live-red), var(--live-red-deep));
+      color: #fff;
+      border: 1px solid #7f1d1d;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border-radius: 8px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 14px var(--live-red-glow);
+      transition: all 0.15s;
+    }
+    .btn-panic:hover { transform: translateY(-1px); box-shadow: 0 6px 22px var(--live-red-glow); }
+    .btn-preview-panic {
+      background: rgba(239, 68, 68, 0.10);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border-radius: 8px;
+      text-transform: uppercase;
+      margin-right: 8px;
+      transition: all 0.15s;
+    }
+    .btn-preview-panic:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.18);
+    }
+    .panic-bar .actions { display: flex; align-items: center; flex-wrap: wrap; }
+
+    /* ── Shakedown panel ───────────────────────────────────────────── */
+    .shakedown-panel {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .shakedown-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .shakedown-head h3 {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .shakedown-head h3::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    }
+    .shakedown-head .summary { font-size: 12px; color: var(--text-dim); }
+    .shakedown-head .summary .ok    { color: var(--green); font-weight: 700; }
+    .shakedown-head .summary .err   { color: var(--red); font-weight: 700; }
+    .shakedown-head .summary .warn  { color: var(--amber); font-weight: 700; }
+    .shakedown-head .summary .skip  { color: var(--text-dim); font-weight: 700; }
+    .shakedown-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .shakedown-actions input {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px; font-size: 11px; width: 150px;
+      font-family: 'JetBrains Mono', monospace;
+      transition: border-color 0.15s;
+    }
+    .shakedown-actions input:focus { outline: none; border-color: var(--accent); }
+    .shakedown-actions label {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text-dim); cursor: pointer;
+    }
+    .btn-shakedown {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(129,140,248,0.35);
+      padding: 7px 14px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; cursor: pointer; border-radius: 6px;
+      text-transform: uppercase; transition: all 0.15s;
+    }
+    .btn-shakedown:hover:not(:disabled) {
+      background: rgba(129, 102, 241, 0.28);
+    }
+    .btn-shakedown:disabled { opacity: 0.5; cursor: not-allowed; }
+    .shakedown-checks { margin-top: 14px; display: none; }
+    .shakedown-checks.visible { display: block; }
+    .shakedown-check {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .shakedown-check:first-child { border-top: none; }
+    .shakedown-check .badge {
+      flex-shrink: 0; width: 56px; text-align: center;
+      padding: 3px 6px; border-radius: 4px;
+      font-size: 9px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .shakedown-check .badge.pass { background: var(--green-dim); color: var(--green); }
+    .shakedown-check .badge.fail { background: var(--red-dim);   color: var(--red); }
+    .shakedown-check .badge.warn { background: var(--amber-dim); color: var(--amber); }
+    .shakedown-check .badge.skip { background: rgba(161,161,170,0.18); color: var(--text-dim); }
+    .shakedown-check .label-col { flex: 1; color: var(--text); }
+    .shakedown-check .label-col .label { font-weight: 600; font-size: 12px; }
+    .shakedown-check .label-col .detail {
+      margin-top: 4px; color: var(--text-dim); font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .shakedown-check .ms { color: var(--text-muted); font-size: 10px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Bot grid ──────────────────────────────────────────────────── */
+    .bot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1100px) { .bot-grid { grid-template-columns: 1fr; } }
+
+    .bot-card {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s;
+    }
+    .bot-card:hover { border-color: var(--border-glow); }
+    .bot-card.disconnected { opacity: 0.65; }
+    .bot-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 24px; right: 24px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+    }
+    .bot-card .ribbon {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 4px 10px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-radius: 999px;
+      font-weight: 700;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .bot-card .ribbon::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%;
+    }
+    .bot-card .ribbon.live   { background: var(--live-red); color: #fff; }
+    .bot-card .ribbon.live::before   { background: #fff; box-shadow: 0 0 6px #fff; animation: live-blink 1.4s infinite; }
+    .bot-card .ribbon.paper  { background: var(--accent-dim); color: var(--accent); }
+    .bot-card .ribbon.paper::before  { background: var(--accent); }
+    .bot-card .ribbon.error  { background: var(--amber-dim); color: var(--amber); }
+    .bot-card .ribbon.error::before  { background: var(--amber); }
+
+    .bot-head { margin-bottom: 18px; }
+    .bot-head h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .bot-head h2 .strategy {
+      font-weight: 400;
+      color: var(--text-dim);
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+    .bot-head .sub {
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── KPIs in bot card ──────────────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    @media (min-width: 700px) { .kpi-row.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+    .kpi {
+      background: var(--pill-bg);
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    html:not([data-theme="light"]) .kpi { background: rgba(0, 0, 0, 0.25); }
+    .kpi:hover { border-color: var(--border-mid); }
+    .kpi .label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .kpi .val {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .kpi .val.green { color: var(--green); }
+    .kpi .val.red { color: var(--red); }
+    .kpi .val.dim { color: var(--text-soft); }
+    .kpi .sub {
+      font-size: 10px; color: var(--text-muted);
+      margin-top: 2px; font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Section ───────────────────────────────────────────────────── */
+    .section-title {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+      margin: 18px 0 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-title .count {
+      background: var(--btn-bg-hover);
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      color: var(--text-soft);
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    /* ── Tables ────────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 9px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--pill-bg); }
+    td.num { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+    td.green { color: var(--green); }
+    td.red { color: var(--red); }
+    td.side-long, td.side-buy { color: var(--green); font-weight: 600; }
+    td.side-short, td.side-sell { color: var(--red); font-weight: 600; }
+    td .stars { color: var(--gold); letter-spacing: -1px; font-size: 11px; }
+    td .symbol { font-weight: 600; }
+
+    .empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 18px;
+      background: var(--pill-bg);
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      font-style: italic;
+    }
+    .error-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fcd34d;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .error-box .icon { flex-shrink: 0; }
+    .error-box a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--btn-bg), var(--btn-bg-hover), var(--btn-bg));
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+      height: 14px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Footer ────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 50px;
+      padding: 24px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="live-banner">
+  <span class="dot"></span>
+  Camelot Tim's Trading Bot · Live operations · Real money · Verify every action
+</div>
+
+<div class="container">
+
+  <!-- ─── Header ─── -->
+  <header>
+    <div class="brand">
+      <div class="logo">N</div>
+      <div class="brand-text">
+        <div class="title">N<span class="o-slash">Ø</span>A Trading</div>
+        <div class="subtitle">Live Operations Console <span class="live-tag">LIVE</span></div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span id="lastUpdate" class="ts-pill">connecting…</span>
+      <button class="btn icon-only" id="themeToggle" onclick="toggleTheme()" title="Toggle dark / light mode" aria-label="Toggle theme">
+        <span class="theme-icon theme-icon-dark">☀</span>
+        <span class="theme-icon theme-icon-light">☾</span>
+      </button>
+      <button class="btn" onclick="refreshNow()">↻ Refresh</button>
+      <a href="/trading" class="btn">← Paper Console</a>
+    </div>
+  </header>
+
+  <!-- ─── Hero summary (combined) ─── -->
+  <div class="hero" id="hero">
+    <div class="hero-stat">
+      <div class="label">Total Equity (Binance)</div>
+      <div class="val" id="heroEquity">—</div>
+      <div class="sub">spot wallets + futures balance</div>
+    </div>
+    <div class="hero-stat">
+      <div class="label">Unrealized P&L</div>
+      <div class="val" id="heroUPnl">—</div>
+      <div class="sub">futures open positions</div>
+    </div>
+    <div class="hero-stat">
+      <div class="label">Realized P&L · 24h</div>
+      <div class="val" id="heroRealized24">—</div>
+      <div class="sub" id="heroRealized24Sub">—</div>
+    </div>
+    <div class="hero-stat">
+      <div class="label">Active Bot Trades</div>
+      <div class="val dim" id="heroOpenCount">—</div>
+      <div class="sub" id="heroOpenSub">across all bots</div>
+    </div>
+  </div>
+
+  <!-- ─── Env status bar ─── -->
+  <div class="env-bar">
+    <div class="env-item">
+      <span class="label">Mainnet confirm</span>
+      <span class="value" id="envConfirm">—</span>
+    </div>
+    <div class="env-item">
+      <span class="label">Spot network</span>
+      <span class="value" id="envCamelot">—</span>
+    </div>
+    <div class="env-item">
+      <span class="label">Futures network</span>
+      <span class="value" id="envKronos">—</span>
+    </div>
+    <div class="env-item">
+      <span class="label">Last fetch</span>
+      <span class="value" id="envTs">—</span>
+    </div>
+  </div>
+
+  <!-- ─── Panic bar ─── -->
+  <div class="panic-bar">
+    <div class="info">
+      <span class="icon">⚠</span>
+      <span>Emergency stop — pauzeert nieuwe opens en sluit alle bestaande posities.</span>
+    </div>
+    <div class="actions">
+      <button class="btn-preview-panic" onclick="previewPanic()" title="Read-only preview van wat panic NU zou sluiten">PREVIEW PANIC</button>
+      <button class="btn-panic" onclick="triggerPanic()">PANIC CLOSE ALL</button>
+    </div>
+  </div>
+
+  <!-- ─── Shakedown panel ─── -->
+  <div class="shakedown-panel">
+    <div class="shakedown-head">
+      <h3>Pre-live shakedown</h3>
+      <div class="summary" id="shakedownSummary">Druk "Run shakedown" om de readiness check te starten.</div>
+      <div class="shakedown-actions">
+        <label title="Plaatst tiny LIMIT order ver onder mid op TESTNET en cancelt direct. Geweigerd op mainnet.">
+          <input type="checkbox" id="shakeWriteTest"> write-test (testnet)
+        </label>
+        <input type="password" id="shakeToken" placeholder="KILL_SWITCH_TOKEN" title="Vereist voor write-test of drift-alert test">
+        <button class="btn-shakedown" id="shakeBtn" onclick="runShakedown()">Run shakedown</button>
+        <button class="btn-shakedown" id="driftBtn" onclick="testDriftAlert()" title="Forceert synthetische drift-alert via Telegram">Test drift alert</button>
+      </div>
+    </div>
+    <div class="shakedown-checks" id="shakedownChecks"></div>
+  </div>
+
+  <!-- ─── Bot cards ─── -->
+  <div class="bot-grid">
+    <!-- Camelot (Spot) -->
+    <div class="bot-card" id="card-camelot">
+      <span class="ribbon" id="ribbon-camelot">—</span>
+      <div class="bot-head">
+        <h2>Camelot <span class="strategy">· Elliott Wave</span></h2>
+        <div class="sub">Binance Spot · <span id="sub-camelot">loading…</span></div>
+      </div>
+      <div id="body-camelot">
+        <div class="kpi-row">
+          <div class="kpi"><div class="label">loading</div><div class="skeleton"></div></div>
+          <div class="kpi"><div class="label">loading</div><div class="skeleton"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kronos (Futures) -->
+    <div class="bot-card" id="card-kronos">
+      <span class="ribbon" id="ribbon-kronos">—</span>
+      <div class="bot-head">
+        <h2>Kronos <span class="strategy">· AI Forecast</span></h2>
+        <div class="sub">Binance Futures · <span id="sub-kronos">loading…</span></div>
+      </div>
+      <div id="body-kronos">
+        <div class="kpi-row">
+          <div class="kpi"><div class="label">loading</div><div class="skeleton"></div></div>
+          <div class="kpi"><div class="label">loading</div><div class="skeleton"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Camelot Tim's Trading Bot · live data direct van Binance + Redis · auto-refresh 10s
+    · <a href="/api/live-state" target="_blank">raw JSON</a>
+    · <a href="/trading">paper console</a>
+    · <a href="/camelot">camelot</a>
+  </footer>
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────
+let lastData = null;
+let refreshTimer = null;
+
+const fmtUsd = (n, dp=2) => (n == null || isNaN(n) ? '—' : `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp })}`);
+const fmtUsdSign = n => {
+  if (n == null || isNaN(n)) return '—';
+  const sign = Number(n) >= 0 ? '+' : '−';
+  return `${sign}$${Math.abs(Number(n)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+const fmtNum = (n, dp=4) => (n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: dp }));
+const fmtPct = n => (n == null || isNaN(n) ? '—' : `${Number(n) >= 0 ? '+' : ''}${Number(n).toFixed(2)}%`);
+const fmtStars = n => n ? '★'.repeat(Math.min(5, Math.max(1, Number(n)))) : '';
+const fmtTime = ms => ms ? new Date(ms).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+const fmtAgo = h => {
+  if (h == null) return '—';
+  if (h < 1) return `${Math.round(h * 60)}m`;
+  if (h < 24) return `${h.toFixed(1)}u`;
+  return `${(h / 24).toFixed(1)}d`;
+};
+const escHtml = s => String(s ?? '').replace(/[<>&"]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]));
+
+// ─── Env bar ────────────────────────────────────────────────────
+function renderEnv(env) {
+  const $ = id => document.getElementById(id);
+  $('envConfirm').textContent = env.liveMainnetConfirmed ? '✓ SET' : '✗ MISSING';
+  $('envConfirm').className = 'value ' + (env.liveMainnetConfirmed ? 'mainnet' : 'off');
+  $('envCamelot').textContent = env.merlijnNetwork.toUpperCase();
+  $('envCamelot').className = 'value ' + env.merlijnNetwork;
+  $('envKronos').textContent = env.kronosNetwork.toUpperCase();
+  $('envKronos').className = 'value ' + env.kronosNetwork;
+  $('envTs').textContent = new Date().toLocaleTimeString('nl-NL');
+}
+
+// ─── Hero summary ───────────────────────────────────────────────
+function renderHero(data) {
+  const camelot = data.bots.paper_4h;
+  const kronos  = data.bots.paper_kronos;
+
+  // Total equity = spot total + futures wallet
+  let equity = 0;
+  if (camelot?.connected) equity += +camelot.totalUsdValue || 0;
+  if (kronos?.connected)  equity += +kronos.totalWalletBalance || 0;
+  const equityEl = document.getElementById('heroEquity');
+  equityEl.textContent = (camelot?.connected || kronos?.connected) ? fmtUsd(equity) : '—';
+  equityEl.className = 'val';
+
+  // Unrealized PnL (futures only)
+  const upnl = kronos?.connected ? (+kronos.unrealizedPnl || 0) : 0;
+  const upnlEl = document.getElementById('heroUPnl');
+  upnlEl.textContent = kronos?.connected ? fmtUsdSign(upnl) : '—';
+  upnlEl.className = 'val ' + (upnl > 0 ? 'green' : upnl < 0 ? 'red' : 'dim');
+
+  // Realized PnL 24h (sum of bot ledgers)
+  const r24 = (camelot?.ledger?.realizedPnl24h || 0) + (kronos?.ledger?.realizedPnl24h || 0);
+  const rAll = (camelot?.ledger?.realizedPnlAll || 0) + (kronos?.ledger?.realizedPnlAll || 0);
+  const r24El = document.getElementById('heroRealized24');
+  r24El.textContent = fmtUsdSign(r24);
+  r24El.className = 'val ' + (r24 > 0 ? 'green' : r24 < 0 ? 'red' : 'dim');
+  document.getElementById('heroRealized24Sub').textContent = `all-time ${fmtUsdSign(rAll)}`;
+
+  // Open count
+  const openCount = (camelot?.ledger?.openPositions?.length || 0) + (kronos?.ledger?.openPositions?.length || 0);
+  const totalTrades = (camelot?.ledger?.totalTrades || 0) + (kronos?.ledger?.totalTrades || 0);
+  document.getElementById('heroOpenCount').textContent = openCount;
+  document.getElementById('heroOpenSub').textContent = `${totalTrades} closed lifetime`;
+}
+
+// ─── Bot ledger renderer (shared between Camelot + Kronos) ──────
+function renderBotLedger(ledger) {
+  if (!ledger) return '';
+  const open = ledger.openPositions || [];
+  const closed = ledger.recentTrades || [];
+
+  let openHtml;
+  if (open.length === 0) {
+    openHtml = '<div class="empty">Geen open bot-trades</div>';
+  } else {
+    const rows = open.map(p => `
+      <tr>
+        <td><span class="symbol">${escHtml(p.token)}</span> <span class="stars">${fmtStars(p.stars)}</span></td>
+        <td class="side-${(p.side || '').toLowerCase()}">${escHtml(p.side)}</td>
+        <td class="num">${fmtNum(p.qty, 6)}</td>
+        <td class="num">${fmtNum(p.entryPrice, 4)}</td>
+        <td class="num">${p.stop != null ? fmtNum(p.stop, 4) : '—'}</td>
+        <td class="num">${p.target != null ? fmtNum(p.target, 4) : '—'}</td>
+        <td class="num">${p.sizeUsd != null ? fmtUsd(p.sizeUsd, 0) : '—'}</td>
+        <td class="num">${fmtAgo(p.hours)}</td>
+      </tr>
+    `).join('');
+    openHtml = `
+      <table>
+        <thead><tr>
+          <th>Token</th><th>Side</th><th class="num">Qty</th>
+          <th class="num">Entry</th><th class="num">Stop</th><th class="num">Target</th>
+          <th class="num">Size</th><th class="num">Age</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  let closedHtml;
+  if (closed.length === 0) {
+    closedHtml = '<div class="empty">Nog geen gesloten trades</div>';
+  } else {
+    const rows = closed.slice(0, 10).map(t => {
+      const cls = (+t.pnl) > 0 ? 'green' : (+t.pnl) < 0 ? 'red' : '';
+      return `
+        <tr>
+          <td><span class="symbol">${escHtml(t.token)}</span> <span class="stars">${fmtStars(t.stars)}</span></td>
+          <td class="side-${(t.side || '').toLowerCase()}">${escHtml(t.side)}</td>
+          <td class="num">${fmtNum(t.entryPrice, 4)}</td>
+          <td class="num">${fmtNum(t.exitPrice, 4)}</td>
+          <td class="num ${cls}">${fmtUsdSign(t.pnl)}</td>
+          <td class="num ${cls}">${fmtPct(t.pnlPct)}</td>
+          <td class="num">${fmtAgo(t.hours)}</td>
+          <td style="color:var(--text-muted); font-size:11px;">${escHtml(t.reason || '—')}</td>
+        </tr>
+      `;
+    }).join('');
+    closedHtml = `
+      <table>
+        <thead><tr>
+          <th>Token</th><th>Side</th>
+          <th class="num">Entry</th><th class="num">Exit</th>
+          <th class="num">P&L</th><th class="num">%</th>
+          <th class="num">Held</th><th>Reason</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // Realized PnL summary
+  const r24Cls = (+ledger.realizedPnl24h) > 0 ? 'green' : (+ledger.realizedPnl24h) < 0 ? 'red' : 'dim';
+  const rAllCls = (+ledger.realizedPnlAll) > 0 ? 'green' : (+ledger.realizedPnlAll) < 0 ? 'red' : 'dim';
+  const winrate = ledger.totalTrades > 0 ? (ledger.winrateAll * 100).toFixed(1) + '%' : '—';
+
+  const ledgerKpi = `
+    <div class="kpi-row cols-3" style="margin-top:14px; margin-bottom:0;">
+      <div class="kpi">
+        <div class="label">Realized · 24h</div>
+        <div class="val ${r24Cls}">${fmtUsdSign(ledger.realizedPnl24h)}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Realized · all-time</div>
+        <div class="val ${rAllCls}">${fmtUsdSign(ledger.realizedPnlAll)}</div>
+        <div class="sub">${ledger.totalTrades} trades · ${winrate}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">${ledger.botEquity != null ? 'Bot Equity' : 'Cash (combined)'}</div>
+        <div class="val dim">${ledger.botEquity != null ? fmtUsd(ledger.botEquity) : (ledger.botBalance != null ? fmtUsd(ledger.botBalance) : '—')}</div>
+        <div class="sub">${ledger.startBalance != null ? `start ${fmtUsd(ledger.startBalance, 0)}` : ''}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Active Bot Trades <span class="count">${open.length}</span></div>
+    ${openHtml}
+
+    <div class="section-title">Recent Closed Trades <span class="count">${closed.length}</span></div>
+    ${closedHtml}
+  `;
+  return ledgerKpi;
+}
+
+// ─── Render Camelot (Spot) ──────────────────────────────────────
+function renderCamelot(bot) {
+  const card = document.getElementById('card-camelot');
+  const ribbon = document.getElementById('ribbon-camelot');
+  const sub = document.getElementById('sub-camelot');
+  const body = document.getElementById('body-camelot');
+
+  if (!bot) {
+    card.classList.add('disconnected');
+    ribbon.textContent = 'N/A';
+    ribbon.className = 'ribbon';
+    sub.textContent = 'not fetched';
+    body.innerHTML = '<div class="empty">Niet opgevraagd</div>';
+    return;
+  }
+
+  sub.textContent = `${bot.network.toUpperCase()} · ${bot.adapter}`;
+
+  if (!bot.connected) {
+    card.classList.add('disconnected');
+    ribbon.textContent = bot.mode === 'live' ? 'ERROR' : bot.mode.toUpperCase();
+    ribbon.className = 'ribbon ' + (bot.mode === 'live' ? 'error' : 'paper');
+    // Still render bot ledger if it has data
+    body.innerHTML = `
+      <div class="error-box"><span class="icon">⚠</span><div><strong>${escHtml(bot.error || 'disconnected')}</strong><br>
+      Voor live data: zet bot op LIVE op <a href="/trading">/trading</a> + zorg dat API keys + <code>LIVE_MAINNET_CONFIRM</code> gezet zijn.</div></div>
+      ${renderBotLedger(bot.ledger)}
+    `;
+    return;
+  }
+
+  card.classList.remove('disconnected');
+  ribbon.textContent = 'LIVE';
+  ribbon.className = 'ribbon live';
+
+  const balRows = bot.balances.slice(0, 10).map(b => `
+    <tr>
+      <td><span class="symbol">${escHtml(b.asset)}</span></td>
+      <td class="num">${fmtNum(b.total, 8)}</td>
+      <td class="num">${fmtNum(b.free, 8)}</td>
+      <td class="num">${fmtNum(b.locked, 8)}</td>
+      <td class="num">${fmtUsd(b.usdValue)}</td>
+    </tr>
+  `).join('');
+
+  const orderRows = bot.openOrders.map(o => `
+    <tr>
+      <td><span class="symbol">${escHtml(o.symbol)}</span></td>
+      <td class="side-${o.side.toLowerCase()==='buy'?'buy':'sell'}">${escHtml(o.side)}</td>
+      <td>${escHtml(o.type)}</td>
+      <td class="num">${fmtNum(o.price)}</td>
+      <td class="num">${fmtNum(o.origQty)}</td>
+      <td>${escHtml(o.status)}</td>
+    </tr>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="kpi-row cols-3">
+      <div class="kpi">
+        <div class="label">Wallet Value</div>
+        <div class="val">${fmtUsd(bot.totalUsdValue)}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Assets</div>
+        <div class="val dim">${bot.balances.length}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Open Orders</div>
+        <div class="val dim">${bot.openOrdersCount}</div>
+      </div>
+    </div>
+
+    ${renderBotLedger(bot.ledger)}
+
+    <div class="section-title">Wallet Balances <span class="count">${bot.balances.length}</span></div>
+    ${bot.balances.length === 0 ? '<div class="empty">Geen balances</div>' : `
+    <table>
+      <thead><tr><th>Asset</th><th class="num">Total</th><th class="num">Free</th><th class="num">Locked</th><th class="num">USD</th></tr></thead>
+      <tbody>${balRows}</tbody>
+    </table>`}
+
+    <div class="section-title">Open Orders <span class="count">${bot.openOrdersCount}</span></div>
+    ${bot.openOrdersCount === 0 ? '<div class="empty">Geen open orders</div>' : `
+    <table>
+      <thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th class="num">Price</th><th class="num">Qty</th><th>Status</th></tr></thead>
+      <tbody>${orderRows}</tbody>
+    </table>`}
+  `;
+}
+
+// ─── Render Kronos (Futures) ────────────────────────────────────
+function renderKronos(bot) {
+  const card = document.getElementById('card-kronos');
+  const ribbon = document.getElementById('ribbon-kronos');
+  const sub = document.getElementById('sub-kronos');
+  const body = document.getElementById('body-kronos');
+
+  if (!bot) {
+    card.classList.add('disconnected');
+    ribbon.textContent = 'N/A';
+    ribbon.className = 'ribbon';
+    sub.textContent = 'not fetched';
+    body.innerHTML = '<div class="empty">Niet opgevraagd</div>';
+    return;
+  }
+
+  sub.textContent = `${bot.network.toUpperCase()} · ${bot.adapter}`;
+
+  if (!bot.connected) {
+    card.classList.add('disconnected');
+    ribbon.textContent = bot.mode === 'live' ? 'ERROR' : bot.mode.toUpperCase();
+    ribbon.className = 'ribbon ' + (bot.mode === 'live' ? 'error' : 'paper');
+    body.innerHTML = `
+      <div class="error-box"><span class="icon">⚠</span><div><strong>${escHtml(bot.error || 'disconnected')}</strong><br>
+      Voor live data: zet bot op LIVE op <a href="/trading">/trading</a> + zorg dat API keys + <code>LIVE_MAINNET_CONFIRM</code> gezet zijn.</div></div>
+      ${renderBotLedger(bot.ledger)}
+    `;
+    return;
+  }
+
+  card.classList.remove('disconnected');
+  ribbon.textContent = 'LIVE';
+  ribbon.className = 'ribbon live';
+
+  const upnlClass = bot.unrealizedPnl > 0 ? 'green' : bot.unrealizedPnl < 0 ? 'red' : 'dim';
+
+  const posRows = bot.positions.map(p => {
+    const pnlClass = p.unrealizedPnl > 0 ? 'green' : p.unrealizedPnl < 0 ? 'red' : '';
+    return `
+      <tr>
+        <td><span class="symbol">${escHtml(p.symbol)}</span></td>
+        <td class="side-${p.side.toLowerCase()}">${escHtml(p.side)}</td>
+        <td class="num">${fmtNum(p.positionAmt, 4)}</td>
+        <td class="num">${fmtNum(p.entryPrice)}</td>
+        <td class="num">${fmtNum(p.markPrice)}</td>
+        <td class="num">${p.leverage}×</td>
+        <td class="num ${pnlClass}">${fmtUsdSign(p.unrealizedPnl)}</td>
+        <td class="num ${pnlClass}">${fmtPct(p.pnlPct)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const orderRows = bot.openOrders.map(o => `
+    <tr>
+      <td><span class="symbol">${escHtml(o.symbol)}</span></td>
+      <td class="side-${o.side.toLowerCase()==='buy'?'buy':'sell'}">${escHtml(o.side)}${o.reduceOnly?' (R)':''}</td>
+      <td>${escHtml(o.type)}</td>
+      <td class="num">${fmtNum(o.price || o.stopPrice)}</td>
+      <td class="num">${fmtNum(o.origQty)}</td>
+      <td>${escHtml(o.status)}</td>
+    </tr>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="kpi-row cols-3">
+      <div class="kpi">
+        <div class="label">Wallet Balance</div>
+        <div class="val">${fmtUsd(bot.totalWalletBalance)}</div>
+        <div class="sub">avail ${fmtUsd(bot.availableBalance)}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Unrealized P&L</div>
+        <div class="val ${upnlClass}">${fmtUsdSign(bot.unrealizedPnl)}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Open Positions</div>
+        <div class="val dim">${bot.positions.length}</div>
+        <div class="sub">${bot.openOrdersCount} open orders</div>
+      </div>
+    </div>
+
+    ${renderBotLedger(bot.ledger)}
+
+    <div class="section-title">Binance Open Positions <span class="count">${bot.positions.length}</span></div>
+    ${bot.positions.length === 0 ? '<div class="empty">Geen open futures posities</div>' : `
+    <table>
+      <thead><tr>
+        <th>Symbol</th><th>Side</th><th class="num">Qty</th>
+        <th class="num">Entry</th><th class="num">Mark</th><th class="num">Lev</th>
+        <th class="num">uPnL</th><th class="num">%</th>
+      </tr></thead>
+      <tbody>${posRows}</tbody>
+    </table>`}
+
+    <div class="section-title">Open Orders <span class="count">${bot.openOrdersCount}</span></div>
+    ${bot.openOrdersCount === 0 ? '<div class="empty">Geen open orders</div>' : `
+    <table>
+      <thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th class="num">Price</th><th class="num">Qty</th><th>Status</th></tr></thead>
+      <tbody>${orderRows}</tbody>
+    </table>`}
+  `;
+}
+
+// ─── Fetch + render loop ────────────────────────────────────────
+async function fetchState() {
+  try {
+    const r = await fetch('/api/live-state', { cache: 'no-store' });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'unknown error');
+    lastData = data;
+    renderEnv(data.env);
+    renderHero(data);
+    renderCamelot(data.bots.paper_4h);
+    renderKronos(data.bots.paper_kronos);
+    document.getElementById('lastUpdate').textContent = '✓ ' + fmtTime(data.ts);
+  } catch (e) {
+    document.getElementById('lastUpdate').textContent = '✗ ' + e.message;
+    console.error('[live-state] fetch fail:', e);
+  }
+}
+
+function refreshNow() { fetchState(); }
+
+// ─── Theme toggle (dark / light) ────────────────────────────────
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const next = current === 'light' ? 'dark' : 'light';
+  if (next === 'dark') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+  try { localStorage.setItem('noa_theme', next); } catch (e) { /* ignore */ }
+}
+
+// ─── Panic preview ──────────────────────────────────────────────
+async function previewPanic() {
+  try {
+    const r = await fetch('/api/kill-switch?action=panic-dryrun&scope=all', { cache: 'no-store' });
+    const data = await r.json();
+    if (!data || !data.ok) {
+      alert(`Preview FAILED: ${data?.error || 'unknown'}`);
+      return;
+    }
+    const lines = [];
+    lines.push(`PANIC DRY-RUN — scope: ${data.scope}`);
+    lines.push(`Total positions to close: ${data.totalPositionCount}`);
+    lines.push(`Estimated runtime: ${data.estimatedRuntimeSec}s`);
+    lines.push(`Overall ready: ${data.overallReady ? 'YES ✓' : 'NO ✗'}`);
+    if (data.blockers && data.blockers.length) {
+      lines.push('');
+      lines.push('BLOCKERS:');
+      for (const b of data.blockers) lines.push(`  • ${b}`);
+    }
+    for (const [bot, info] of Object.entries(data.bots || {})) {
+      lines.push('');
+      lines.push(`${bot.toUpperCase()} (${info.mode}${info.network ? ' · ' + info.network : ''}):`);
+      lines.push(`  positions: ${info.positionCount}`);
+      lines.push(`  closePositionByForce exported: ${info.closePositionByForceExported ? 'yes' : 'NO ✗'}`);
+      if (info.positions && info.positions.length) {
+        for (const p of info.positions) {
+          const sz = p.sizeUsd != null ? ` ($${Number(p.sizeUsd).toFixed(0)})` : '';
+          lines.push(`    - ${p.token} ${p.side} qty=${p.qty}${sz} (id=${p.id})`);
+        }
+      }
+    }
+    alert(lines.join('\n'));
+  } catch (e) {
+    alert(`Network error: ${e.message}`);
+  }
+}
+
+// ─── Panic close all ────────────────────────────────────────────
+async function triggerPanic() {
+  const confirm1 = prompt('⚠ Je staat op het punt ALLE LIVE posities te sluiten. Typ "PANIC" om te bevestigen:');
+  if (confirm1 !== 'PANIC') { alert('Geannuleerd.'); return; }
+
+  const token = prompt('KILL_SWITCH_TOKEN (vraag bij de operator als je deze niet hebt):');
+  if (!token) { alert('Geen token ingevuld — panic geannuleerd.'); return; }
+
+  const reason = prompt('Reden (wordt naar Telegram gestuurd + in audit-log):', 'manual operator panic');
+
+  try {
+    const r = await fetch(`/api/kill-switch?action=panic&scope=all&reason=${encodeURIComponent(reason || 'manual')}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    const data = await r.json();
+    if (r.ok || r.status === 207) {
+      alert(`✓ Panic triggered. Closed: ${data.closedCount}${data.errors?.length ? `\nErrors: ${data.errors.length} (check logs)` : ''}`);
+    } else {
+      alert(`✗ Panic FAILED: ${data.error || 'unknown'}`);
+    }
+    fetchState();
+  } catch (e) {
+    alert(`✗ Network error: ${e.message}`);
+  }
+}
+
+// ─── Shakedown ──────────────────────────────────────────────────
+async function runShakedown() {
+  const btn = document.getElementById('shakeBtn');
+  const sum = document.getElementById('shakedownSummary');
+  const list = document.getElementById('shakedownChecks');
+  const writeTest = document.getElementById('shakeWriteTest').checked;
+  const token = (document.getElementById('shakeToken').value || '').trim();
+  if (writeTest && !token) {
+    alert('write-test vereist KILL_SWITCH_TOKEN.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  sum.innerHTML = '<span class="skip">running checks…</span>';
+  try {
+    let url = '/api/shakedown';
+    const params = [];
+    if (writeTest) params.push('writeTest=1');
+    if (writeTest && token) params.push(`token=${encodeURIComponent(token)}`);
+    if (params.length) url += '?' + params.join('&');
+    const r = await fetch(url, { method: 'GET', cache: 'no-store' });
+    const data = await r.json();
+    if (!data || !Array.isArray(data.checks)) {
+      sum.innerHTML = `<span class="err">shakedown FAILED: ${data?.error || 'unknown'}</span>`;
+      return;
+    }
+    const s = data.summary || {};
+    sum.innerHTML = `
+      <span class="ok">${s.pass || 0} pass</span> ·
+      <span class="err">${s.fail || 0} fail</span> ·
+      <span class="warn">${s.warn || 0} warn</span> ·
+      <span class="skip">${s.skip || 0} skip</span>
+      · ${data.writeTestRan ? '<strong style="color:var(--accent)">incl. write-test</strong>' : 'read-only'}
+      · <span style="color:var(--text-muted)">${new Date(data.ts).toLocaleTimeString('nl-NL')}</span>
+    `;
+    list.innerHTML = '';
+    for (const c of data.checks) {
+      const row = document.createElement('div');
+      row.className = 'shakedown-check';
+      const detail = c.detail
+        ? (typeof c.detail === 'string' ? c.detail : JSON.stringify(c.detail, null, 2))
+        : '';
+      row.innerHTML = `
+        <span class="badge ${c.status}">${c.status}</span>
+        <div class="label-col">
+          <div class="label">${escHtml(c.label)}</div>
+          ${detail ? `<div class="detail">${escHtml(detail)}</div>` : ''}
+        </div>
+        <span class="ms">${c.ms != null ? c.ms + 'ms' : ''}</span>
+      `;
+      list.appendChild(row);
+    }
+    list.classList.add('visible');
+  } catch (e) {
+    sum.innerHTML = `<span class="err">network error: ${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run shakedown';
+  }
+}
+
+async function testDriftAlert() {
+  const btn = document.getElementById('driftBtn');
+  const sum = document.getElementById('shakedownSummary');
+  const token = (document.getElementById('shakeToken').value || '').trim();
+  if (!token) {
+    alert('Test drift alert vereist KILL_SWITCH_TOKEN (om Telegram-spam te voorkomen).');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  sum.innerHTML = '<span class="skip">injecting synthetic drift…</span>';
+  try {
+    const r = await fetch(`/api/reconcile?inject=test&scope=camelot&token=${encodeURIComponent(token)}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      sum.innerHTML = `<span class="err">drift alert FAILED: ${data?.error || r.status}</span>`;
+      return;
+    }
+    if (data.telegramSent) {
+      sum.innerHTML = `<span class="ok">✓ drift alert verstuurd via Telegram</span> · <span style="color:var(--text-muted)">check je chat (synthetic BTC/ETH/USDT met _TEST suffix)</span>`;
+    } else {
+      sum.innerHTML = `<span class="warn">drift alert NIET verstuurd: ${data.telegramError || 'unknown'}</span>`;
+    }
+  } catch (e) {
+    sum.innerHTML = `<span class="err">network error: ${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Test drift alert';
+  }
+}
+
+// ─── Init + auto-refresh ────────────────────────────────────────
+fetchState();
+refreshTimer = setInterval(fetchState, 10000);
+
+// Pause refresh als tab niet zichtbaar (bespaart Binance API quota)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  } else if (!refreshTimer) {
+    fetchState();
+    refreshTimer = setInterval(fetchState, 10000);
+  }
+});
+</script>
+
+</body>
+</html>

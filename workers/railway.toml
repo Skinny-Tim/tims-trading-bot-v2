@@ -1,0 +1,12 @@
+# Railway config — push deze hele /workers folder naar een aparte Railway service.
+# Free tier ($5 trial credit, daarna $5/mo voor always-on hobby plan):
+#   - Voldoende voor 24/7 worker (256MB RAM, 0.1 vCPU = ~$2/mo verbruik)
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "node tick-worker.js"
+restartPolicyType = "ALWAYS"
+restartPolicyMaxRetries = 10
+healthcheckPath = "/health"
+healthcheckTimeout = 10

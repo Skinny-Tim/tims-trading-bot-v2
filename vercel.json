@@ -1,0 +1,292 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "paper-trading.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "live.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "camelot.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/metals.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/signals-cron.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "api/kronos.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "api/backtest-agent.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "api/signal-config.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/paper-engine.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "api/portfolio-state.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/live-state.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 30
+      }
+    },
+    {
+      "src": "api/shakedown.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 30
+      }
+    },
+    {
+      "src": "api/ew-tuner.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 300
+      }
+    },
+    {
+      "src": "api/camelot-engine.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "api/fx.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/ops.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
+    },
+    {
+      "src": "data/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "lib/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "logo.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "trade-log.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "config.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/trade-log.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/config.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/claude-analyzer.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/data/(.*)",
+      "dest": "/data/$1"
+    },
+    {
+      "src": "/lib/(.*)",
+      "dest": "/lib/$1"
+    },
+    {
+      "src": "/logo.png",
+      "dest": "/logo.png"
+    },
+    {
+      "src": "/api/metals",
+      "dest": "/api/metals.js"
+    },
+    {
+      "src": "/api/signals-cron",
+      "dest": "/api/signals-cron.js"
+    },
+    {
+      "src": "/api/kronos",
+      "dest": "/api/kronos.js"
+    },
+    {
+      "src": "/api/backtest-agent",
+      "dest": "/api/backtest-agent.js"
+    },
+    {
+      "src": "/api/signal-config",
+      "dest": "/api/signal-config.js"
+    },
+    {
+      "src": "/api/paper-engine",
+      "dest": "/api/paper-engine.js"
+    },
+    {
+      "src": "/api/paper-state",
+      "dest": "/api/portfolio-state.js"
+    },
+    {
+      "src": "/api/portfolio-state",
+      "dest": "/api/portfolio-state.js"
+    },
+    {
+      "src": "/api/live-state",
+      "dest": "/api/live-state.js"
+    },
+    {
+      "src": "/api/shakedown",
+      "dest": "/api/shakedown.js"
+    },
+    {
+      "src": "/api/ew-audit",
+      "dest": "/api/ew-tuner.js?action=audit"
+    },
+    {
+      "src": "/api/ew-tuner",
+      "dest": "/api/ew-tuner.js"
+    },
+    {
+      "src": "/api/camelot-engine",
+      "dest": "/api/camelot-engine.js"
+    },
+    {
+      "src": "/api/camelot",
+      "dest": "/api/camelot-engine.js"
+    },
+    {
+      "src": "/api/fx",
+      "dest": "/api/fx.js"
+    },
+    {
+      "src": "/api/signals",
+      "dest": "/api/signals-cron.js"
+    },
+    {
+      "src": "/api/kill-switch",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/api/reconcile",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/api/recover",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/api/audit",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/api/equity-curve",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/api/bot-config",
+      "dest": "/api/ops.js"
+    },
+    {
+      "src": "/trading",
+      "dest": "/paper-trading.html"
+    },
+    {
+      "src": "/live",
+      "dest": "/live.html"
+    },
+    {
+      "src": "/camelot",
+      "dest": "/camelot.html"
+    },
+    {
+      "src": "/trade-log",
+      "dest": "/trade-log.html"
+    },
+    {
+      "src": "/config",
+      "dest": "/config.html"
+    },
+    {
+      "src": "/api/trade-log",
+      "dest": "/api/trade-log.js"
+    },
+    {
+      "src": "/api/config",
+      "dest": "/api/config.js"
+    },
+    {
+      "src": "/api/claude-analyzer",
+      "dest": "/api/claude-analyzer.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/signals-cron",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/backtest-agent",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/ew-tuner",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/audit?action=archive",
+      "schedule": "55 23 * * *"
+    },
+    {
+      "path": "/api/paper-engine",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}

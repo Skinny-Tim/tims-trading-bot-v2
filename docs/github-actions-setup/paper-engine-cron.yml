@@ -1,0 +1,21 @@
+name: Paper Trading Engine (every 10 min)
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:  # laat je handmatig triggeren vanuit GitHub UI
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger paper engine
+        run: |
+          set -e
+          HTTP=$(curl -sS -o /tmp/resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.PAPER_ENGINE_SECRET }}" \
+            "${{ secrets.PAPER_ENGINE_URL }}")
+          echo "HTTP $HTTP"
+          cat /tmp/resp.json
+          if [ "$HTTP" != "200" ]; then exit 1; fi

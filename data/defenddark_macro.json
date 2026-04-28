@@ -1,0 +1,252 @@
+{
+  "_meta": {
+    "source": "DefendDark — The Dark's Side Discord (manually compiled from per-coin channels)",
+    "lastManualUpdate": "2026-04-22",
+    "note": "Static fallback. Cron defenddark_reconcile + Railway monitor will overlay live updates."
+  },
+  "byCoin": {
+    "HBAR": {
+      "lastSeen": "2026-04-22",
+      "timeframe": "Grand Wave + Monthly + Daily",
+      "macroLabel": "GW3 — W1 in progress, sub-i actief (early stages)",
+      "bias": "bullish (W1 van GW3 net begonnen, vroege fase)",
+      "shortTermTargets": ["$0.29 (85.40% Fib)", "$0.40 (next resist)", "$0.55 (W1 top)", "$1.10 (W2/W3 transition)"],
+      "longTermTargets": [
+        "$1.64 (GW4 pullback — 161.80% Fib)",
+        "$15.99 (GW3 top — 261.80% Fib)",
+        "$155.91 (GW5 ultimate — 361.80% Fib, ~2028)"
+      ],
+      "invalidation": "$0.07 (GW2 base)",
+      "headline": "Grand Wave: GW1 2021 $0.58 → GW2 2024 $0.03 → GW3 lopend naar $15.99 → GW5 $155.91 ultimate. Currently W1 van GW3 (sub-i in progress).",
+      "vsDashboard": "ALIGNED met DD's W3/sub-i framing. Dashboard targets uitgebreid met GW5 ultimate $155.91.",
+      "alignment": "aligned",
+      "lastQuote": "We can see the early stages of forming the Sub-wave 3 of the Grand Wave 3, targeting $15 levels.",
+      "_degreeStack": {
+        "title": "HBAR Grand Wave structure",
+        "grandWaves": {
+          "GW1": "2021 top $0.58",
+          "GW2": "2024 bottom $0.03",
+          "GW3": "lopend → top ~$15.99 (~2026, 261.80% Fib)",
+          "GW4": "projected ~2027 → $1.64 (161.80% Fib)",
+          "GW5": "projected ~2028 → $155.91 (361.80% Fib)"
+        },
+        "wavesWithinGW3": {
+          "W1": "in progress — sub-i starting, target top $0.55 (sub-v climax)",
+          "W2": "projected — pullback naar $0.20-0.28 zone",
+          "W3": "projected — strongest impulse, target ~$3-5",
+          "W4": "projected — pullback",
+          "W5": "projected → $15.99 (261.80% Fib GW3 top)"
+        },
+        "subWavesWithinW1": {
+          "i": "in progress — early stages from $0.07 base",
+          "ii": "projected — shallow pullback",
+          "iii": "projected — extension naar $0.35-0.45",
+          "iv": "projected — pullback",
+          "v": "projected → $0.55 W1 top"
+        },
+        "fibLevels": ["$0.0984 (38.20%)", "$0.1288 (50%)", "$0.1685 (61.80%)", "$0.2040 (70.20%)", "$0.2883 (85.40%)", "$1.6417 (161.80%)", "$15.999 (261.80%)", "$155.91 (361.80%)"]
+      },
+      "macroOverride": {
+        "currentWave": "W1",
+        "subWave": "i",
+        "degreeStack": ["GW3", "W1"],
+        "currentNodeLabel": "W1 van GW3",
+        "inProgressLabel": "W1 van GW3",
+        "phaseLabel": "W1 van GW3 — sub-i in progress, target $15.99 → ultimately $155.91",
+        "actionLabel": "Buy Dip / Accumulate",
+        "actionTone": "buy"
+      }
+    },
+    "XRP": {
+      "lastSeen": "2026-04-22",
+      "timeframe": "Grand Wave + Monthly + Weekly + Daily",
+      "macroLabel": "W5 van W1 van GW3 — W4 ABC voltooid @ $1.31, sub-i in progress",
+      "bias": "bullish (W5 expansion onderweg binnen W1 van GW3)",
+      "shortTermTargets": ["$1.47 (85.40% Fib key resist)", "$1.40 (70.20% Fib reclaim)", "$1.67 (123.60% Fib)", "$1.88 (161.80% Fib)", "$2.22 (sub-i target)"],
+      "longTermTargets": [
+        "$5.86 (W5 van W1 top — 261.80% Fib)",
+        "$18.23 (W1 van GW3 top — 361.80% Fib)",
+        "$117.10 (W3 van GW3 top — 261.80%)",
+        "$1,043.61 (W5 van GW3 top — 361.80%)",
+        "$7,500+ (GW5 ultimate, ~2034)"
+      ],
+      "invalidation": "$1.32 (50% Fib structural — W4 base)",
+      "headline": "Grand Wave: GW1 2018 → GW2 2022 $0.30 → GW3 actief. Binnen GW3: W1 richting $18.23. Binnen W1: W4 ABC voltooid @ $1.31, W5 start naar $5.86.",
+      "vsDashboard": "ALIGNED met DD's W5 framing. Dashboard W5/sub-i = W5 van W1 van GW3. Dashboard 2.0 ext $8.24 valt tussen W5 top $5.86 en W1 top $18.23.",
+      "alignment": "aligned",
+      "lastQuote": "Monthly structure shows a completed corrective phase (ABC). Price is holding above the major base after Wave 4. The current move aligns with the early stages of a potential Wave 5 expansion. Major upside remains open toward the 261.80% Fib level at the $5.8563+ level.",
+      "_degreeStack": {
+        "title": "XRP Grand Wave structure",
+        "grandWaves": {
+          "GW1": "2018 top $3.84",
+          "GW2": "2022 bottom $0.30",
+          "GW3": "lopend → top ~$1,043 (~2029-2030)",
+          "GW4": "projected ~2032",
+          "GW5": "projected ~2034 $7,500+"
+        },
+        "wavesWithinGW3": {
+          "W1": "lopend → $18.23 (361.80%)",
+          "W2": "projected ~2027 → $5.5-10",
+          "W3": "projected ~2028 → $117.10 (261.80%)",
+          "W4": "projected ~2029",
+          "W5": "projected ~2030 → $1,043.61 (361.80%)"
+        },
+        "subWavesWithinW1": {
+          "w1-w2-w3-w4": "voltooid (w4 ABC bottom @ $1.31)",
+          "w5": "starting nu — target $5.86 (261.80% Fib)"
+        },
+        "fibLevels": ["$1.88 (161.80%)", "$5.86 (261.80%)", "$13.14 (161.80%)", "$18.23 (361.80%)", "$117.10 (261.80%)", "$333.23 (161.80%)", "$1,043.61 (361.80%)"]
+      },
+      "macroOverride": {
+        "currentWave": "W5",
+        "subWave": "i",
+        "degreeStack": ["GW3", "W1", "W5"],
+        "currentNodeLabel": "W5 van W1 van GW3",
+        "inProgressLabel": "W1 van GW3",
+        "phaseLabel": "W5 van W1 van GW3 — naar $5.86 → $18.23 → ultimately $1,043+",
+        "actionLabel": "Hold & Ride W5",
+        "actionTone": "buy"
+      }
+    },
+    "BTC": {
+      "lastSeen": "2026-04-22",
+      "timeframe": "Grand Wave + Monthly + Weekly",
+      "macroLabel": "GW3 — W1 top $109k (Oct 2025) voltooid, W2 bottom $67k (Feb 2026) voltooid, W3 sub-i in progress",
+      "bias": "bullish (W3 van GW3 starting — strongest impulse ahead)",
+      "shortTermTargets": ["$109,000 (W1 top retest)", "$126,272 (ATH retest)", "$140,000 (sub-iii target)", "$165,000 (W3 projection — 161.80% ext)"],
+      "longTermTargets": [
+        "$165,000 (W3 van GW3 top — 161.80% Fib)",
+        "$250,000 (W5 van GW3 top — 261.80% Fib, ~2027)",
+        "$500,000+ (GW5 ultimate, ~2030)"
+      ],
+      "invalidation": "$67,000 (W2 low — onder dit breekt W3 structuur)",
+      "headline": "Grand Wave: GW1 2017 $20k → GW2 2018 $3k → GW3 lopend. Binnen GW3: W1 top $109k (Oct 2025), W2 bottom $67k (Feb 2026), nu W3 starting richting $165k+ → W5 $250k+.",
+      "vsDashboard": "ALIGNED met chart algo — monthly chart toont W1 \u2713 $109k, W2 \u2713 $67k, W3 in progress. Single source of truth.",
+      "alignment": "aligned",
+      "lastQuote": "Reclaim of prior highs confirms W3 kickoff — strongest impulse in the count.",
+      "_degreeStack": {
+        "title": "BTC Grand Wave structure (aligned with monthly chart algo, 2026-04-22)",
+        "grandWaves": {
+          "GW1": "2017 top $20k",
+          "GW2": "2018 bottom $3k",
+          "GW3": "lopend → top ~$250k (~2027, W5 target)",
+          "GW4": "projected ~2028 pullback",
+          "GW5": "projected ~2030 → $500k+ ultimate"
+        },
+        "wavesWithinGW3": {
+          "W1": "voltooid — top $109k Oct 2025 (ATH zone)",
+          "W2": "voltooid — bottom $67k Feb 2026 (pullback 38% retrace)",
+          "W3": "in progress — target $165k (161.80% ext), strongest impulse",
+          "W4": "projected — pullback naar $130-140k zone",
+          "W5": "projected → $250k+ top GW3"
+        },
+        "subWavesWithinW3": {
+          "i": "in progress — reclaim prior highs + $109k retest",
+          "ii": "projected — shallow pullback",
+          "iii": "projected — extension naar $140k+",
+          "iv": "projected — pullback",
+          "v": "projected → $165k W3 top"
+        },
+        "fibLevels": ["$67,000 (W2 low — invalidation)", "$109,000 (W1 top)", "$126,272 (ATH retest)", "$140,000 (sub-iii)", "$165,000 (W3 top — 161.80%)", "$250,000 (W5 top — 261.80%)"]
+      },
+      "macroOverride": {
+        "currentWave": "W3",
+        "subWave": "i",
+        "degreeStack": ["GW3", "W3"],
+        "currentNodeLabel": "W3 van GW3 (sub-i)",
+        "inProgressLabel": "W3 van GW3",
+        "phaseLabel": "W3 van GW3 — sub-i in progress, W1 top $109k + W2 bottom $67k voltooid, target $165k \u2192 ultimately $250k+",
+        "actionLabel": "Hold & Ride W3",
+        "actionTone": "buy"
+      }
+    },
+    "XAU": {
+      "lastSeen": "2026-04-22",
+      "timeframe": "Monthly + 3D",
+      "macroLabel": "GW3 W4 ABC correctie — Wave A $5,600→$4,400 voltooid, sub-B retrace, daarna W5 naar $5,213-$6k+",
+      "bias": "bullish long-term na correctie",
+      "shortTermTargets": ["$4,187 (sub-B target — 38.2% retrace)", "$3,735 (sub-B deep target — 50% retrace)"],
+      "longTermTargets": [
+        "$5,213 (W5 van GW3 — 461.8% Fib ext)",
+        "$6,000 (W5 van GW3 ultimate target)",
+        "$7,500 (GW5 projection ~2030)"
+      ],
+      "invalidation": "$3,330 (423.6% Fib — onder dit niveau breekt GW3 structuur)",
+      "headline": "DD Macro 31-03 (refresh 22-04): GW3 in Wave 4 ABC correctie. Wave A $5,600→$4,400 voltooid. Sub-B retrace richting $4,187 / $3,735. Daarna W5 naar $5,213→$6,000.",
+      "vsDashboard": "ALIGNED. Dashboard W4 (Partial TP) ↔ DD's W4 ABC correctie. Targets $4,187/$3,735/$5,213/$6,000 nu expliciet in zelfde format als andere tokens.",
+      "alignment": "aligned",
+      "lastQuote": "Once the correction completes, the structure suggests a strong Wave 5 continuation toward the 6k+ region.",
+      "_degreeStack": {
+        "title": "XAU Grand Wave structure (DD 31-03-2026, 1M)",
+        "grandWaves": {
+          "GW1": "1971-1980 top $850",
+          "GW2": "1980-2001 bottom $250",
+          "GW3": "2001-lopend → top ~$6,000 (W5)",
+          "GW4": "projected ~2030-2032 pullback",
+          "GW5": "projected ~2034 → $7,500+ ultimate"
+        },
+        "wavesWithinGW3": {
+          "W1": "2001-2011 $250 → $1,920",
+          "W2": "2011-2015 pullback naar $1,046",
+          "W3": "2015-2024 → $2,750+ extended",
+          "W4": "2024-lopend ABC correctie ($5,600 → $4,400 → $3,735?)",
+          "W5": "projected → $5,213 (461.8% Fib) → $6,000 ultimate"
+        },
+        "subWavesWithinW4": {
+          "A": "voltooid ($5,600 → $4,400)",
+          "B": "in progress (sub-B retrace target $4,187 / deep $3,735)",
+          "C": "projected → $3,330 worst case"
+        },
+        "fibLevels": ["$3,330 (423.6%)", "$3,735 (50% retrace)", "$4,187 (38.2% retrace)", "$5,213 (461.8% Fib W5)", "$6,000 (W5 ultimate)", "$7,500 (GW5 projection)"]
+      },
+      "macroOverride": {
+        "currentWave": "W4",
+        "subWave": "B",
+        "degreeStack": ["GW3", "W4"],
+        "currentNodeLabel": "W4 van GW3 (sub-B)",
+        "inProgressLabel": "W4 van GW3",
+        "phaseLabel": "W4 van GW3 — ABC correctie (sub-B), Wave A voltooid, daarna W5 naar $5,213-$6,000",
+        "actionLabel": "Wait for ABC bottom",
+        "actionTone": "wait"
+      }
+    },
+    "XAG": {
+      "lastSeen": "2026-04-22",
+      "timeframe": "Monthly + Daily",
+      "macroLabel": "GW3 test $88 zone — boven $69 = bullish continuation, onder $69 = GW4 pullback",
+      "bias": "bullish boven $69, bearish onder",
+      "shortTermTargets": ["$88.13 (GW3 ext target — 261.80% Fib)", "$104 (eerdere top)"],
+      "longTermTargets": [
+        "$47.59 (GW4 pullback target — 161.80% Fib)",
+        "$139.75 (GW5 intermediate — 261.80% Fib)",
+        "$163.22 (GW5 ultimate — 361.80% Fib)"
+      ],
+      "invalidation": "$69 (GW4 trigger naar $47-55)",
+      "headline": "DD Macro 27-03: GW1 → GW2 → GW3 $88 test, daarna GW4 naar $47.59, finale GW5 naar $163.22 (361.80%). Currently $69.76 in GW3 testing $88.",
+      "vsDashboard": "ALIGNED met DD's macro framing. Dashboard $148 ≈ tussen GW5 intermediate $139.75 en ultimate $163.22.",
+      "alignment": "aligned",
+      "lastQuote": "We said if it stays above 69 it can test 88. It stayed and tested 76 and the condition is the same.",
+      "_degreeStack": {
+        "title": "XAG Grand Wave structure (DD 27-03-2026, 1M)",
+        "grandWaves": {
+          "GW1": "~$30-35 (2024)",
+          "GW2": "~$26-28 pullback",
+          "GW3": "test $88.13 (261.80% Fib) — current zone",
+          "GW4": "projected pullback → $47.59 (161.80% Fib)",
+          "GW5": "projected → $163.22 (361.80% Fib ultimate)"
+        },
+        "fibLevels": ["$47.59 (161.80%)", "$69.71 (38.20%)", "$88.14 (261.80% GW3)", "$139.75 (261.80% GW5 mid)", "$163.22 (361.80% GW5 ultimate)"]
+      },
+      "macroOverride": {
+        "currentWave": "W3",
+        "subWave": "v",
+        "degreeStack": ["GW3", "W3"],
+        "currentNodeLabel": "W3 van GW3 (sub-v)",
+        "inProgressLabel": "W3 van GW3",
+        "phaseLabel": "W3 van GW3 — sub-v test $88, boven $69 bullish naar W5 $163.22, onder $69 = W4 naar $47.59",
+        "actionLabel": "Hold above $69",
+        "actionTone": "buy"
+      }
+    }
+  }
+}

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camelot — Configuratie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #F5F3EF; color: #002035; min-height: 100vh; }
+
+    .topbar {
+      background: #002035; color: #fff;
+      padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 700; }
+    .back-link { color: #7EA8C4; text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+    .back-link:hover { color: #fff; }
+    .topbar .sub { font-size: 12px; color: #7EA8C4; margin-left: auto; }
+
+    .page { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Auth banner */
+    .auth-banner {
+      background: linear-gradient(135deg, #002035, #003554);
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .auth-banner label { color: #7EA8C4; font-size: 13px; font-weight: 600; }
+    .auth-banner input {
+      flex: 1; min-width: 200px; padding: 9px 14px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08); color: #fff; font-size: 13px;
+    }
+    .auth-banner input::placeholder { color: #7EA8C4; }
+    .auth-status { font-size: 12px; }
+    .auth-status.ok  { color: #27AE60; }
+    .auth-status.err { color: #EB5757; }
+
+    /* Groups */
+    .group { background: #fff; border-radius: 12px; border: 1px solid rgba(0,32,53,0.08); margin-bottom: 16px; overflow: hidden; }
+    .group-header {
+      background: #002035; color: #fff;
+      padding: 12px 20px; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .group-header .icon { font-size: 16px; }
+    .group-body { padding: 0; }
+
+    /* Param rows */
+    .param-row {
+      display: grid;
+      grid-template-columns: 1fr 160px 180px;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0,32,53,0.06);
+      transition: background 0.1s;
+    }
+    .param-row:last-child { border-bottom: none; }
+    .param-row:hover { background: rgba(0,32,53,0.02); }
+    .param-row.modified { background: rgba(212,175,55,0.05); border-left: 3px solid #D4AF37; }
+
+    .param-label { font-size: 13px; font-weight: 600; color: #002035; margin-bottom: 2px; }
+    .param-key   { font-size: 10px; color: #7EA8C4; font-family: monospace; }
+
+    .param-default { text-align: center; }
+    .default-val { font-size: 13px; color: #7EA8C4; }
+    .default-label { font-size: 9px; text-transform: uppercase; color: #B0C4D4; letter-spacing: 0.5px; }
+
+    .param-input { display: flex; align-items: center; gap: 8px; }
+    .param-input input[type=number],
+    .param-input select {
+      width: 100%; padding: 8px 12px;
+      border-radius: 8px; border: 1px solid rgba(0,32,53,0.2);
+      font-size: 13px; color: #002035; background: #F5F3EF;
+      transition: border-color 0.15s;
+    }
+    .param-input input:focus, .param-input select:focus {
+      outline: none; border-color: #D4AF37;
+    }
+    .param-input .unit { font-size: 11px; color: #7EA8C4; white-space: nowrap; }
+
+    /* Toggle */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle {
+      position: relative; width: 44px; height: 24px;
+      display: inline-block; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #ccc;
+      border-radius: 24px; cursor: pointer; transition: background 0.2s;
+    }
+    .slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; left: 3px; top: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider { background: #27AE60; }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .toggle-label { font-size: 13px; color: #002035; }
+
+    /* Action bar */
+    .action-bar {
+      position: sticky; bottom: 0;
+      background: #fff; border-top: 1px solid rgba(0,32,53,0.1);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      box-shadow: 0 -4px 20px rgba(0,32,53,0.08);
+    }
+    .btn {
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-primary   { background: #D4AF37; color: #002035; }
+    .btn-secondary { background: rgba(0,32,53,0.08); color: #002035; }
+    .btn-danger    { background: rgba(235,87,87,0.1); color: #EB5757; border: 1px solid rgba(235,87,87,0.3); }
+    .modified-count { font-size: 12px; color: #D4AF37; font-weight: 600; }
+    .save-status { font-size: 12px; }
+    .save-status.ok  { color: #27AE60; }
+    .save-status.err { color: #EB5757; }
+    .spacer { flex: 1; }
+
+    .loading { padding: 40px; text-align: center; color: #7EA8C4; }
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid rgba(0,32,53,0.15); border-top-color: #002035;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .warning-box {
+      background: rgba(242,153,74,0.1); border: 1px solid rgba(242,153,74,0.3);
+      border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+      font-size: 12px; color: #C17A2A; line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .param-row { grid-template-columns: 1fr; }
+      .param-default { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="back-link">← Dashboard</a>
+  <h1>⚙ Configuratie</h1>
+  <span class="sub" id="loadTs">Laden…</span>
+</div>
+
+<div class="page">
+
+  <!-- Auth -->
+  <div class="auth-banner">
+    <label>🔑 Bot Token:</label>
+    <input type="password" id="authToken" placeholder="Voer je PAPER_ENGINE_SECRET in…" oninput="onTokenChange()">
+    <span class="auth-status" id="authStatus"></span>
+  </div>
+
+  <div class="warning-box">
+    ⚠ Wijzigingen worden direct actief bij de volgende cron run (binnen 10 minuten). Pas maximaal 2–3 parameters tegelijk aan en wacht minimaal 20 trades voor je evalueert.
+  </div>
+
+  <div id="loadingEl" class="loading"><div class="spinner"></div><br><br>Parameters laden…</div>
+  <div id="configContent" style="display:none;"></div>
+
+</div>
+
+<!-- Action bar -->
+<div class="action-bar">
+  <span class="modified-count" id="modCount"></span>
+  <span class="save-status" id="saveStatus"></span>
+  <span class="spacer"></span>
+  <button class="btn btn-secondary" onclick="resetToDefaults()">↺ Reset naar defaults</button>
+  <button class="btn btn-primary" id="saveBtn" onclick="saveConfig()" disabled>💾 Opslaan</button>
+</div>
+
+<script>
+let currentConfig  = {};
+let defaultConfig  = {};
+let paramMeta      = {};
+let pendingChanges = {};
+
+const GROUP_ICONS = {
+  'Instap':     '📡',
+  'Kwaliteit':  '⭐',
+  'Positie':    '📊',
+  'Stop/Trail': '🛡',
+  'Veiligheid': '🚨',
+  'Adaptief':   '🧠',
+};
+
+// ── Load config from API ──
+async function loadConfig() {
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+
+    currentConfig = d.current;
+    defaultConfig = d.defaults;
+    paramMeta     = d.meta;
+
+    renderConfig();
+    document.getElementById('loadTs').textContent = `Geladen: ${new Date().toLocaleTimeString('nl-BE')}`;
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('configContent').style.display = 'block';
+  } catch (e) {
+    document.getElementById('loadingEl').innerHTML = `<span style="color:#EB5757;">Fout: ${e.message}</span>`;
+  }
+}
+
+// ── Render all parameter groups ──
+function renderConfig() {
+  const groups = {};
+  Object.entries(paramMeta).forEach(([key, meta]) => {
+    const g = meta.group || 'Overig';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push({ key, meta, value: currentConfig[key], def: defaultConfig[key] });
+  });
+
+  const html = Object.entries(groups).map(([groupName, params]) => `
+    <div class="group">
+      <div class="group-header" onclick="toggleGroup(this)">
+        <span>${GROUP_ICONS[groupName] || '⚙'} ${groupName}</span>
+        <span>${params.length} parameters</span>
+      </div>
+      <div class="group-body">
+        ${params.map(p => renderParam(p)).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('configContent').innerHTML = html;
+}
+
+function renderParam({ key, meta, value, def }) {
+  const isModified = JSON.stringify(value) !== JSON.stringify(def);
+  const modClass   = isModified ? 'modified' : '';
+
+  // Format display value
+  let defDisplay = def;
+  if (meta.pct && typeof def === 'number') defDisplay = (def * 100).toFixed(0) + '%';
+  else if (typeof def === 'boolean') defDisplay = def ? 'Aan' : 'Uit';
+  else if (def != null) defDisplay = def;
+
+  let inputHtml = '';
+
+  if (meta.type === 'bool') {
+    const checked = value ? 'checked' : '';
+    inputHtml = `
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" ${checked} onchange="onParamChange('${key}', this.checked)" id="input_${key}">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label" id="label_${key}">${value ? 'Aan' : 'Uit'}</span>
+      </div>`;
+  } else if (meta.type === 'select') {
+    inputHtml = `
+      <select onchange="onParamChange('${key}', this.value)" id="input_${key}">
+        ${meta.options.map(o => `<option value="${o}" ${o === value ? 'selected' : ''}>${o}</option>`).join('')}
+      </select>`;
+  } else {
+    // Number input
+    let displayVal = value;
+    if (meta.pct && typeof value === 'number') displayVal = (value * 100);
+    inputHtml = `
+      <input type="number"
+        id="input_${key}"
+        value="${displayVal != null ? displayVal : ''}"
+        min="${meta.pct ? (meta.min * 100) : meta.min}"
+        max="${meta.pct ? (meta.max * 100) : meta.max}"
+        step="${meta.pct ? (meta.step * 100) : meta.step}"
+        onchange="onParamChange('${key}', this.value)">
+      ${meta.unit ? `<span class="unit">${meta.unit}</span>` : ''}`;
+  }
+
+  return `
+    <div class="param-row ${modClass}" id="row_${key}">
+      <div>
+        <div class="param-label">${meta.label}</div>
+        <div class="param-key">${key}</div>
+      </div>
+      <div class="param-default">
+        <div class="default-label">Default</div>
+        <div class="default-val">${defDisplay}</div>
+      </div>
+      <div class="param-input">${inputHtml}</div>
+    </div>`;
+}
+
+function toggleGroup(header) {
+  const body = header.nextElementSibling;
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+// ── Handle changes ──
+function onParamChange(key, rawValue) {
+  const meta = paramMeta[key];
+  let value  = rawValue;
+
+  if (meta?.type === 'bool') {
+    value = Boolean(rawValue);
+    const lbl = document.getElementById(`label_${key}`);
+    if (lbl) lbl.textContent = value ? 'Aan' : 'Uit';
+  } else if (meta?.type === 'select') {
+    value = rawValue;
+  } else {
+    // Number — convert back from pct display if needed
+    value = parseFloat(rawValue);
+    if (meta?.pct) value = value / 100;
+  }
+
+  pendingChanges[key] = value;
+
+  // Mark row as modified
+  const row = document.getElementById(`row_${key}`);
+  if (row) {
+    const def = defaultConfig[key];
+    const isModified = JSON.stringify(value) !== JSON.stringify(def);
+    row.classList.toggle('modified', isModified);
+  }
+
+  updateActionBar();
+}
+
+function onTokenChange() {
+  const t = document.getElementById('authToken').value;
+  document.getElementById('authStatus').textContent = t ? '✓ Token ingevuld' : '';
+  document.getElementById('authStatus').className = `auth-status ${t ? 'ok' : ''}`;
+  document.getElementById('saveBtn').disabled = !t || !Object.keys(pendingChanges).length;
+}
+
+function updateActionBar() {
+  const count = Object.keys(pendingChanges).length;
+  document.getElementById('modCount').textContent = count ? `${count} onopgeslagen wijziging(en)` : '';
+  const token = document.getElementById('authToken').value;
+  document.getElementById('saveBtn').disabled = !token || !count;
+}
+
+// ── Save ──
+async function saveConfig() {
+  const token = document.getElementById('authToken').value;
+  if (!token) { alert('Voer eerst je bot token in.'); return; }
+  if (!Object.keys(pendingChanges).length) return;
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Opslaan…';
+  document.getElementById('saveStatus').textContent = '';
+
+  try {
+    const r = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-bot-token': token },
+      body: JSON.stringify(pendingChanges),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+
+    document.getElementById('saveStatus').textContent = `✓ ${d.message}`;
+    document.getElementById('saveStatus').className = 'save-status ok';
+    pendingChanges = {};
+    updateActionBar();
+    await loadConfig(); // Refresh
+  } catch (e) {
+    document.getElementById('saveStatus').textContent = `✗ ${e.message}`;
+    document.getElementById('saveStatus').className = 'save-status err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Opslaan';
+  }
+}
+
+// ── Reset ──
+async function resetToDefaults() {
+  const token = document.getElementById('authToken').value;
+  if (!token) { alert('Voer eerst je bot token in.'); return; }
+  if (!confirm('Alle aanpassingen resetten naar standaard waarden?')) return;
+
+  try {
+    const r = await fetch('/api/config?reset=1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-bot-token': token },
+      body: '{}',
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    pendingChanges = {};
+    await loadConfig();
+    document.getElementById('saveStatus').textContent = '✓ Reset naar defaults';
+    document.getElementById('saveStatus').className = 'save-status ok';
+  } catch (e) {
+    alert('Fout: ' + e.message);
+  }
+}
+
+loadConfig();
+</script>
+</body>
+</html>

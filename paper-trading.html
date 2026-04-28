@@ -1,0 +1,4654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camelot Tim's Trading Bot - Paper &amp; Live Trading</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F5F3EF;
+    min-height: 100vh;
+    padding: 20px;
+    color: #002035;
+  }
+
+  .dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ---- Top Bar ---- */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-logo {
+    height: 56px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,32,53,0.18);
+  }
+
+  .top-bar-left h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #002035;
+    letter-spacing: -0.5px;
+  }
+
+  .top-bar-left .subtitle {
+    font-size: 13px;
+    color: #4a6a80;
+    margin-top: 2px;
+  }
+
+  .top-bar-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mode-toggle {
+    display: flex;
+    background: rgba(0,32,53,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #4a6a80;
+    transition: all 0.25s;
+    font-family: inherit;
+  }
+
+  .mode-btn.active {
+    background: #012D4C;
+    color: #F5F3EF;
+    border-radius: 10px;
+  }
+
+  .top-bar-right {
+    text-align: right;
+  }
+
+  .balance-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #4a6a80;
+  }
+
+  .balance-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #002035;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4a6a80;
+    text-decoration: none;
+    margin-bottom: 16px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #002035; }
+
+  /* ---- Cards ---- */
+  .card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(0,32,53,0.08);
+    box-shadow: 0 4px 24px rgba(0,32,53,0.06);
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #002035;
+  }
+
+  .card-title .icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    background: #012D4C;
+  }
+
+  /* ---- Summary Grid ---- */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+  }
+
+  .summary-item {
+    background: rgba(255,255,255,0.5);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .summary-item .label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #4a6a80;
+    margin-bottom: 6px;
+  }
+
+  .summary-item .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #002035;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .summary-item .value.positive { color: #2e8b57; }
+  .summary-item .value.negative { color: #FC4C4C; }
+
+  /* ---- Tables ---- */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+  }
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #4a6a80;
+    padding: 8px 10px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  th:first-child { text-align: left; }
+
+  tr.data-row {
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+
+  tr.data-row:hover {
+    background: rgba(255,255,255,0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(100,80,140,0.08);
+  }
+
+  td {
+    padding: 10px 10px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  td:first-child {
+    text-align: left;
+    border-radius: 10px 0 0 10px;
+    font-weight: 600;
+  }
+
+  td:last-child {
+    border-radius: 0 10px 10px 0;
+  }
+
+  /* ---- Badges ---- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-long {
+    background: rgba(46,139,87,0.15);
+    color: #2e8b57;
+  }
+
+  .badge-short {
+    background: rgba(252,76,76,0.12);
+    color: #FC4C4C;
+  }
+
+  .badge-buy {
+    background: linear-gradient(135deg, #c8e8d0, #a0d8b0);
+    color: #1a5a30;
+  }
+
+  .badge-sell {
+    background: linear-gradient(135deg, #fcd4d4, rgba(252,76,76,0.25));
+    color: #FC4C4C;
+  }
+
+  .badge-hold {
+    background: rgba(0,32,53,0.08);
+    color: #4a6a80;
+  }
+
+  .stars { color: #f5a623; font-size: 12px; letter-spacing: 1px; }
+
+  .profit { color: #2e8b57; font-weight: 600; }
+  .loss { color: #FC4C4C; font-weight: 600; }
+
+  /* ---- Buttons ---- */
+  .btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-close-pos {
+    background: rgba(252,76,76,0.12);
+    color: #FC4C4C;
+  }
+  .btn-close-pos:hover {
+    background: #FC4C4C;
+    color: white;
+  }
+
+  .btn-primary {
+    background: #012D4C;
+    color: #F5F3EF;
+  }
+  .btn-primary:hover { background: #002035; }
+
+  .btn-danger {
+    background: rgba(252,76,76,0.12);
+    color: #FC4C4C;
+  }
+  .btn-danger:hover {
+    background: #FC4C4C;
+    color: white;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(0,32,53,0.2);
+    color: #4a6a80;
+  }
+  .btn-outline:hover {
+    border-color: #012D4C;
+    color: #012D4C;
+  }
+
+  /* ---- Signal Monitor ---- */
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .signal-card {
+    background: rgba(255,255,255,0.5);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .signal-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .signal-card-token {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .token-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .icon-btc  { background: #002035; }
+  .icon-hbar { background: #012D4C; }
+  .icon-xrp  { background: #012D4C; }
+  .icon-eth  { background: #627EEA; }
+  .icon-sol  { background: linear-gradient(135deg, #9945FF, #14F195); }
+  .icon-bnb  { background: #F3BA2F; color: #002035; }
+  .icon-avax { background: #E84142; }
+  .icon-link { background: #2A5ADA; }
+  .icon-ada  { background: #0033AD; }
+  .icon-dot  { background: #E6007A; }
+  .icon-pol  { background: #8247E5; }
+  .icon-doge { background: #C2A633; color: #002035; }
+  .icon-sui  { background: linear-gradient(135deg, #4DA2FF, #1B3F8A); }
+  .icon-trx  { background: #FF060A; }
+  .icon-xlm  { background: linear-gradient(135deg, #08B5E5, #0080A8); }
+
+  .signal-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+
+  .signal-detail-label { color: #4a6a80; }
+  .signal-detail-value { font-weight: 600; }
+
+  /* ---- Equity Curve ---- */
+  .equity-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    margin-top: 8px;
+  }
+
+  .equity-canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.3);
+  }
+
+  /* ---- Bot Selectie ---- */
+  .bot-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .bot-select-tile {
+    background: rgba(0,32,53,0.04);
+    border: 1px solid rgba(0,32,53,0.10);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .bot-select-tile.on {
+    background: rgba(46,139,87,0.06);
+    border-color: rgba(46,139,87,0.30);
+  }
+  .bot-select-tile.off {
+    background: rgba(0,32,53,0.025);
+    border-color: rgba(0,32,53,0.08);
+    opacity: 0.85;
+  }
+  .bot-select-meta { line-height: 1.35; }
+  .bot-select-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #002035;
+    letter-spacing: 0.2px;
+  }
+  .bot-select-sub {
+    font-size: 11px;
+    color: #7a8a90;
+    margin-top: 2px;
+  }
+  .bot-select-status {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .bot-select-status.on  { background: rgba(46,139,87,0.15);   color: #2e8b57; }
+  .bot-select-status.off { background: rgba(122,138,144,0.18); color: #4a6a80; }
+
+  /* Mode badge + segmented control voor paper/live keuze */
+  .bot-select-mode-row {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .bot-select-mode-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #7a8a90;
+  }
+  .bot-select-mode-seg {
+    display: inline-flex;
+    background: rgba(0,32,53,0.05);
+    border: 1px solid rgba(0,32,53,0.10);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .bot-select-mode-seg button {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    cursor: pointer;
+    color: #4a6a80;
+    transition: background 0.15s, color 0.15s;
+  }
+  .bot-select-mode-seg button:hover:not(:disabled) {
+    background: rgba(0,32,53,0.06);
+  }
+  .bot-select-mode-seg button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+  .bot-select-mode-seg button.active.paper {
+    background: #2e8b57;
+    color: #fff;
+  }
+  .bot-select-mode-seg button.active.live {
+    background: #FC4C4C;
+    color: #fff;
+  }
+  /* LIVE badge naast bot-naam wanneer mode === live */
+  .bot-select-live-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    background: #FC4C4C;
+    color: #fff;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    border-radius: 999px;
+    vertical-align: middle;
+    animation: liveBadgePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes liveBadgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(252,76,76,0.6); }
+    50%      { box-shadow: 0 0 0 6px rgba(252,76,76,0);   }
+  }
+  /* Tile met live mode → rode rand-accent */
+  .bot-select-tile.mode-live {
+    border-color: rgba(252,76,76,0.45);
+    background: rgba(252,76,76,0.04);
+  }
+  /* Env-warning banner als LIVE_MAINNET_CONFIRM mist */
+  .bot-select-env-warn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: rgba(173,104,0,0.10);
+    border: 1px solid rgba(173,104,0,0.30);
+    border-radius: 6px;
+    font-size: 11.5px;
+    color: #8a5400;
+    line-height: 1.45;
+  }
+  .bot-select-savebar {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 11.5px;
+    color: #7a8a90;
+  }
+  .bot-select-savebar.dirty { color: #ad6800; }
+
+  /* ---- History Equity Curve (compact, binnen Portfolio Summary) ---- */
+  .history-equity-mini {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(0,32,53,0.1);
+  }
+  .history-equity-mini-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .history-equity-mini-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #4a6a80;
+  }
+  .history-equity-mini-title #historyEquityRange {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #7a8a90;
+    margin-left: 6px;
+  }
+  .history-equity-live-badge {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(46,139,87,0.12);
+    color: #2e8b57;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .history-equity-live-badge.on { display: inline-flex; }
+  .history-equity-live-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2e8b57;
+    animation: livePulse 1.6s infinite;
+  }
+  .history-equity-mini-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .history-equity-wrap {
+    position: relative;
+    width: 100%;
+    height: 160px;
+  }
+  .history-equity-wrap canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.3);
+  }
+  .history-equity-pill {
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255,255,255,0.4);
+    color: #4a6a80;
+    border: 1px solid rgba(0,32,53,0.08);
+    user-select: none;
+    transition: background 0.12s ease;
+  }
+  .history-equity-pill:hover { background: rgba(255,255,255,0.7); }
+  .history-equity-pill.active {
+    background: linear-gradient(135deg,#012D4C 0%,#014a7a 100%);
+    color: #fff;
+    border-color: transparent;
+  }
+  @keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(46,139,87,0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(46,139,87,0); }
+    100% { box-shadow: 0 0 0 0 rgba(46,139,87,0); }
+  }
+
+  /* ---- Settings ---- */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .setting-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #4a6a80;
+    margin-bottom: 6px;
+  }
+
+  .setting-item input,
+  .setting-item select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(0,32,53,0.15);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.6);
+    color: #002035;
+  }
+
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 44px; height: 24px;
+    background: rgba(0,32,53,0.15);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .toggle.active { background: #2e8b57; }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+
+  .toggle.active::after { transform: translateX(20px); }
+
+  .toggle-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #002035;
+  }
+
+  /* ---- Trade Log Scroll ---- */
+  .trade-log-wrap {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .trade-log-wrap::-webkit-scrollbar { width: 6px; }
+  .trade-log-wrap::-webkit-scrollbar-track { background: transparent; }
+  .trade-log-wrap::-webkit-scrollbar-thumb { background: rgba(0,32,53,0.15); border-radius: 3px; }
+
+  /* ---- Footer ---- */
+  .footer {
+    text-align: center;
+    padding: 16px 0;
+    font-size: 12px;
+    color: #4a6a80;
+  }
+
+  .last-updated {
+    font-size: 11px;
+    color: #4a6a80;
+    font-weight: 500;
+  }
+
+  .ws-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ws-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2e8b57;
+    animation: wsPulse 1.5s ease-in-out infinite;
+  }
+
+  .ws-dot.offline {
+    background: #c0392b;
+    animation: none;
+  }
+
+  @keyframes wsPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46,139,87,0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(46,139,87,0); }
+  }
+
+  /* ---- Notifications ---- */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.4s ease;
+    max-width: 360px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .toast-buy {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 2px solid #2e8b57;
+    color: #1b5e20;
+  }
+
+  .toast-sell {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    border: 2px solid #FC4C4C;
+    color: #b71c1c;
+  }
+
+  .toast-info {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid #012D4C;
+    color: #002035;
+  }
+
+  .toast-error {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    border: 2px solid #FC4C4C;
+    color: #b71c1c;
+  }
+
+  /* ---- Live Mode Banner ---- */
+  .live-banner {
+    display: none;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 2px solid #ff9800;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e65100;
+    text-align: center;
+  }
+
+  .live-banner.visible { display: block; }
+
+  /* ---- Kill-switch panel ---- */
+  .killswitch-panel {
+    background: #fff;
+    border: 1px solid rgba(0,32,53,0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,32,53,0.04);
+  }
+  .killswitch-panel.active-panic {
+    background: linear-gradient(135deg, #FFEAEA, #FFCFCF);
+    border-color: #FC4C4C;
+    box-shadow: 0 2px 14px rgba(252,76,76,0.25);
+  }
+  .ks-title {
+    font-size: 13px; font-weight: 700; color: #012D4C;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ks-title .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #2e8b57; box-shadow: 0 0 6px #2e8b57;
+  }
+  .ks-title.warn .dot { background: #ff9800; box-shadow: 0 0 6px #ff9800; }
+  .ks-title.danger .dot { background: #FC4C4C; box-shadow: 0 0 8px #FC4C4C; animation: ks-blink 1s infinite; }
+  @keyframes ks-blink { 50% { opacity: 0.3; } }
+  .ks-mode-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ks-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(0,32,53,0.08); color: #4a6a80;
+    letter-spacing: 0.5px;
+  }
+  .ks-badge.paper { background: rgba(46,139,87,0.12); color: #2e8b57; }
+  .ks-badge.testnet { background: rgba(255,152,0,0.18); color: #c46900; }
+  .ks-badge.mainnet { background: #FC4C4C; color: white; box-shadow: 0 0 6px rgba(252,76,76,0.6); }
+  .ks-spacer { flex: 1; }
+  .ks-status-text {
+    font-size: 12px; color: #4a6a80; font-weight: 500;
+  }
+  .ks-status-text strong { color: #FC4C4C; }
+  .ks-actions { display: flex; gap: 6px; }
+  .ks-btn {
+    padding: 6px 12px; border: none; border-radius: 8px;
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .ks-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ks-btn-pause { background: rgba(255,152,0,0.15); color: #c46900; }
+  .ks-btn-pause:hover:not(:disabled) { background: #ff9800; color: white; }
+  .ks-btn-panic { background: #FC4C4C; color: white; box-shadow: 0 2px 6px rgba(252,76,76,0.3); }
+  .ks-btn-panic:hover:not(:disabled) { background: #c93535; }
+  .ks-btn-resume { background: rgba(46,139,87,0.15); color: #1e6e3f; }
+  .ks-btn-resume:hover:not(:disabled) { background: #2e8b57; color: white; }
+  .ks-bot-select, .ks-token-input {
+    padding: 5px 8px; border: 1px solid rgba(0,32,53,0.15);
+    border-radius: 6px; font-family: inherit; font-size: 11px;
+    background: white; color: #012D4C;
+  }
+  .ks-token-input { width: 140px; }
+
+  /* ---- Live Dashboard switch ---- */
+  .live-switch-panel {
+    display: none;  /* Toggled via JS based on bot mode */
+    background: linear-gradient(135deg, #FFF5F5, #FFE5E5);
+    border: 1px solid rgba(252,76,76,0.35);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 12px rgba(252,76,76,0.18);
+  }
+  .live-switch-panel.visible { display: flex; }
+  .live-switch-panel .lsp-icon {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: #FC4C4C;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 20px; font-weight: 800;
+    box-shadow: 0 0 12px rgba(252,76,76,0.5);
+    animation: ks-blink 1.6s infinite;
+    flex-shrink: 0;
+  }
+  .live-switch-panel .lsp-text { flex: 1; min-width: 200px; }
+  .live-switch-panel .lsp-title {
+    font-size: 14px; font-weight: 800; color: #8B0000;
+    letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .live-switch-panel .lsp-sub {
+    font-size: 12px; color: #5a2030; margin-top: 2px;
+  }
+  .live-switch-panel .lsp-btn {
+    background: #FC4C4C; color: white;
+    padding: 10px 18px; border: none; border-radius: 10px;
+    font-family: inherit; font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    cursor: pointer; text-decoration: none;
+    box-shadow: 0 2px 8px rgba(252,76,76,0.4);
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .live-switch-panel .lsp-btn:hover {
+    background: #c93535; transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(252,76,76,0.55);
+  }
+  .live-switch-panel .lsp-btn:disabled {
+    background: #999; cursor: not-allowed;
+    box-shadow: none; transform: none;
+  }
+  .live-switch-panel .lsp-arrow { font-size: 14px; }
+
+  /* ---- Loading ---- */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #4a6a80;
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid rgba(0,32,53,0.1);
+    border-top-color: #012D4C;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: #4a6a80;
+    font-size: 13px;
+  }
+
+  /* ---- Bitvavo Warning ---- */
+  .bitvavo-warning {
+    background: rgba(252,76,76,0.08);
+    border: 1px solid rgba(252,76,76,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #FC4C4C;
+    margin-top: 8px;
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 768px) {
+    body { padding: 12px; }
+    .top-bar { flex-direction: column; align-items: flex-start; }
+    .top-bar-right { text-align: left; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .signal-grid { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+    td, th { padding: 8px 6px; }
+    .balance-value { font-size: 20px; }
+    .card { padding: 16px; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .top-bar-left h1 { font-size: 20px; }
+    .mode-btn { padding: 6px 14px; font-size: 12px; }
+  }
+
+  /* ───── Verplichte disclaimer modal (eerste bezoek) ───── */
+  .disclaimer-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 16, 30, 0.78);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: disclaimerFadeIn 0.25s ease-out;
+  }
+  @keyframes disclaimerFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .disclaimer-modal {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 600px;
+    width: 100%;
+    padding: 30px 32px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+    font-family: 'Inter', sans-serif;
+    animation: disclaimerSlideUp 0.32s cubic-bezier(0.2, 0.8, 0.4, 1.0);
+  }
+  @keyframes disclaimerSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .disclaimer-modal-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .disclaimer-modal-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #002035, #012D4C);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .disclaimer-modal h2 {
+    margin: 0;
+    color: #002035;
+    font-size: 17px;
+    letter-spacing: 0.2px;
+    font-weight: 800;
+  }
+  .disclaimer-modal-text {
+    color: #2a4055;
+    font-size: 13.5px;
+    line-height: 1.65;
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    background: rgba(0,32,53,0.04);
+    border-left: 3px solid #002035;
+    border-radius: 6px;
+  }
+  .disclaimer-modal-text strong { color: #002035; font-weight: 700; }
+  .disclaimer-modal-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .disclaimer-modal-check:hover { background: rgba(0,32,53,0.04); }
+  .disclaimer-modal-check input {
+    width: 18px; height: 18px;
+    accent-color: #002035;
+    flex-shrink: 0;
+    margin-top: 1px;
+    cursor: pointer;
+  }
+  .disclaimer-modal-check span {
+    font-size: 13px;
+    color: #2a4055;
+    line-height: 1.5;
+  }
+  .disclaimer-modal-btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #002035, #012D4C);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .disclaimer-modal-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,32,53,0.35);
+  }
+  .disclaimer-modal-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  body.disclaimer-active { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<!-- ─── Verplichte disclaimer modal — first-visit consent ─── -->
+<div class="disclaimer-overlay" id="disclaimerOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">
+  <div class="disclaimer-modal">
+    <div class="disclaimer-modal-head">
+      <div class="disclaimer-modal-icon">!</div>
+      <h2 id="disclaimerTitle">Disclaimer — lees aandachtig</h2>
+    </div>
+    <div class="disclaimer-modal-text">
+      Signalen in <strong>paper modus</strong> zijn uitsluitend voor educatieve doeleinden en vormen geen financieel advies.
+      Het gebruik van de Camelot Tim's Trading Bot in <strong>Live modus</strong> buiten clubverband is volledig op eigen risico.
+      De Camelot Tim's Trading Bot mag <strong>NIET</strong> openbaar gedeeld of verspreid worden en is enkel toegankelijk voor de leden van de club.
+    </div>
+    <label class="disclaimer-modal-check" for="disclaimerCheckbox">
+      <input type="checkbox" id="disclaimerCheckbox" onchange="_disclaimerCheckChanged()">
+      <span>Ik heb de disclaimer gelezen en ga akkoord met de voorwaarden.</span>
+    </label>
+    <button class="disclaimer-modal-btn" id="disclaimerBtn" disabled onclick="_disclaimerAccept()">
+      Akkoord en doorgaan
+    </button>
+  </div>
+</div>
+<script>
+  // Versie-bumpable: als disclaimer-tekst ooit wijzigt, bump suffix
+  // (bv -v2) zodat alle gebruikers opnieuw moeten aanvinken.
+  const _DISCLAIMER_VERSION = 'v1';
+  const _DISCLAIMER_KEY = 'camelot:disclaimer-accepted-' + _DISCLAIMER_VERSION;
+  function _disclaimerCheckChanged() {
+    const cb = document.getElementById('disclaimerCheckbox');
+    const btn = document.getElementById('disclaimerBtn');
+    if (cb && btn) btn.disabled = !cb.checked;
+  }
+  function _disclaimerAccept() {
+    const cb = document.getElementById('disclaimerCheckbox');
+    if (!cb || !cb.checked) return;   // safeguard
+    try { localStorage.setItem(_DISCLAIMER_KEY, new Date().toISOString()); } catch {}
+    const ov = document.getElementById('disclaimerOverlay');
+    if (ov) ov.style.display = 'none';
+    document.body.classList.remove('disclaimer-active');
+  }
+  (function _disclaimerInit() {
+    let accepted = null;
+    try { accepted = localStorage.getItem(_DISCLAIMER_KEY); } catch {}
+    if (!accepted) {
+      const ov = document.getElementById('disclaimerOverlay');
+      if (ov) ov.style.display = 'flex';
+      document.body.classList.add('disclaimer-active');
+    }
+  })();
+</script>
+
+<div class="dashboard">
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+    <a href="/" class="back-link">&larr; Terug naar Dashboard</a>
+    <a href="/trade-log" style="display:inline-flex; align-items:center; gap:5px; padding:6px 13px; background:#002035; color:#D4AF37; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; border:1px solid rgba(212,175,55,0.3);">📋 Trade Log</a>
+    <a href="/config" style="display:inline-flex; align-items:center; gap:5px; padding:6px 13px; background:#002035; color:#7EA8C4; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; border:1px solid rgba(126,168,196,0.2);">⚙ Config</a>
+  </div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <img class="brand-logo" src="/logo.png" alt="Camelot Tim's Trading Bot" onerror="this.style.display='none'">
+      <div>
+        <h1>Camelot Tim's Trading Bot</h1>
+        <div class="subtitle"><span class="live-dot"></span>Paper Trading — 4H Signaal Bot (BTC / ETH / SOL / BNB / HBAR / XRP)</div>
+      </div>
+    </div>
+    <div class="top-bar-center">
+    </div>
+    <div class="top-bar-right">
+      <div class="balance-label" id="balanceLabel">Paper Balance</div>
+      <div class="balance-value" id="balanceValue">&euro;1.000,00</div>
+      <div class="last-updated" id="lastUpdated">Loading...</div>
+      <div id="fxRate" style="font-size:10px;color:#7a8a90;margin-top:4px;" title="USDT-prijzen × deze rate = EUR (ECB via Frankfurter, 1u cache)">FX: loading…</div>
+    </div>
+    <script>
+      (async function pollFx(){
+        async function load(){
+          try {
+            const r = await fetch('/api/fx?to=USDT').then(x => x.json());
+            if (r.ok) {
+              const el = document.getElementById('fxRate');
+              if (el) el.textContent = `1 USDT = €${r.rate.toFixed(4)}`;
+              window._fxUsdtToEur = r.rate;
+            }
+          } catch {}
+        }
+        load();
+        setInterval(load, 3600 * 1000);
+      })();
+    </script>
+  </div>
+
+  <!-- Live Mode Banner (hidden for public) -->
+  <div class="live-banner" id="liveBanner" style="display:none!important;"></div>
+
+  <!-- ═══ Kill-switch panel (LIVE TRADING) ═══ -->
+  <div class="killswitch-panel" id="killswitchPanel">
+    <div class="ks-title" id="ksTitle">
+      <span class="dot"></span>
+      <span id="ksTitleText">Trading Status: loading…</span>
+    </div>
+    <div class="ks-mode-badges" id="ksModeBadges">
+      <span class="ks-badge" id="ksMerlijnBadge">Camelot Bot: …</span>
+      <span class="ks-badge" id="ksKronosBadge">Kronos: …</span>
+    </div>
+    <div class="ks-spacer"></div>
+    <div class="ks-status-text" id="ksStatusText"></div>
+    <div class="ks-actions">
+      <select class="ks-bot-select" id="ksScopeSelect" title="Scope">
+        <option value="all">All bots</option>
+        <option value="camelot">Camelot only</option>
+        <option value="kronos">Kronos only</option>
+      </select>
+      <input type="password" class="ks-token-input" id="ksToken" placeholder="Kill-switch token" autocomplete="off" />
+      <button class="ks-btn ks-btn-pause" id="ksBtnPause" title="Block new opens, leave current positions">PAUSE</button>
+      <button class="ks-btn ks-btn-panic" id="ksBtnPanic" title="Close ALL open positions + block new opens">PANIC CLOSE</button>
+      <button class="ks-btn ks-btn-resume" id="ksBtnResume" title="Re-enable trading">RESUME</button>
+    </div>
+  </div>
+
+  <!-- ═══ Live Dashboard switch (only visible when a bot is in LIVE mode) ═══ -->
+  <div class="live-switch-panel" id="liveSwitchPanel" role="region" aria-label="Live trading dashboard">
+    <div class="lsp-icon">🔴</div>
+    <div class="lsp-text">
+      <div class="lsp-title" id="lspTitle">LIVE trading actief</div>
+      <div class="lsp-sub" id="lspSub">Open het live-dashboard voor real-time Binance balances, positions &amp; orders.</div>
+    </div>
+    <a class="lsp-btn" id="lspBtn" href="/live" target="_blank" rel="noopener">
+      Open Live Dashboard <span class="lsp-arrow">→</span>
+    </a>
+  </div>
+
+  <script>
+  // ═══ Live Dashboard switch controller ═══
+  // Toont de prominent rode "Open Live Dashboard" knop alleen als ten minste
+  // 1 bot in LIVE mode draait. Hergebruikt /api/portfolio-state?include=mode
+  // (hetzelfde dat killswitch-panel ophaalt) zodat geen extra request nodig is.
+  (function setupLiveSwitchUI(){
+    const panel = document.getElementById('liveSwitchPanel');
+    const title = document.getElementById('lspTitle');
+    const sub   = document.getElementById('lspSub');
+    const btn   = document.getElementById('lspBtn');
+    if (!panel || !title || !sub || !btn) return;
+
+    async function refresh() {
+      try {
+        const r = await fetch('/api/portfolio-state?include=mode', { cache: 'no-store' });
+        if (!r.ok) { panel.classList.remove('visible'); return; }
+        const j = await r.json();
+        const m = j.modeStatus || {};
+        const merlijnLive = m.camelot?.mode === 'live';
+        const kronosLive  = m.kronos?.mode  === 'live';
+        const anyLive = merlijnLive || kronosLive;
+        if (!anyLive) { panel.classList.remove('visible'); return; }
+
+        // Build label uit actieve LIVE bots + networks
+        const parts = [];
+        if (merlijnLive) parts.push(`Camelot (${(m.camelot.network || '?').toUpperCase()})`);
+        if (kronosLive)  parts.push(`Kronos (${(m.kronos.network  || '?').toUpperCase()})`);
+        const anyMainnet = (merlijnLive && m.camelot.network === 'mainnet')
+                        || (kronosLive  && m.kronos.network  === 'mainnet');
+        title.textContent = anyMainnet ? '🚨 LIVE MAINNET trading actief' : 'LIVE trading actief';
+        sub.textContent   = `${parts.join(' · ')} — open het live-dashboard voor real-time data direct van Binance.`;
+        panel.classList.add('visible');
+      } catch {
+        panel.classList.remove('visible');
+      }
+    }
+    refresh();
+    setInterval(refresh, 30 * 1000);  // 30s — niet zo agressief, info verandert traag
+  })();
+  </script>
+
+  <script>
+  // ═══ Kill-switch UI controller ═══
+  (function setupKillSwitchUI(){
+    const panel = document.getElementById('killswitchPanel');
+    const titleBox = document.getElementById('ksTitle');
+    const titleText = document.getElementById('ksTitleText');
+    const merlijnBadge = document.getElementById('ksMerlijnBadge');
+    const kronosBadge = document.getElementById('ksKronosBadge');
+    const statusText = document.getElementById('ksStatusText');
+    const scopeSelect = document.getElementById('ksScopeSelect');
+    const tokenInput = document.getElementById('ksToken');
+    const btnPause = document.getElementById('ksBtnPause');
+    const btnPanic = document.getElementById('ksBtnPanic');
+    const btnResume = document.getElementById('ksBtnResume');
+
+    // Persist token in sessionStorage (reset op tab-close)
+    try { tokenInput.value = sessionStorage.getItem('ks_token') || ''; } catch {}
+    tokenInput.addEventListener('change', () => {
+      try { sessionStorage.setItem('ks_token', tokenInput.value || ''); } catch {}
+    });
+
+    function setBadge(el, name, mode, network) {
+      el.className = 'ks-badge';
+      let label = `${name}: PAPER`;
+      if (mode === 'live') {
+        label = `${name}: LIVE ${network ? '(' + network.toUpperCase() + ')' : ''}`;
+        if (network === 'mainnet') el.classList.add('mainnet');
+        else el.classList.add('testnet');
+      } else {
+        el.classList.add('paper');
+      }
+      el.textContent = label;
+    }
+
+    async function refreshStatus() {
+      // Mode info uit /api/portfolio-state of /api/kill-switch (state)
+      try {
+        const r = await fetch('/api/kill-switch', { cache: 'no-store' });
+        const j = await r.json();
+        if (j.active) {
+          panel.classList.add('active-panic');
+          titleBox.classList.remove('warn'); titleBox.classList.add('danger');
+          titleText.textContent = 'KILL-SWITCH ACTIVE';
+          const closed = j.closedCount ? ` · closed ${j.closedCount}` : '';
+          statusText.innerHTML = `<strong>${(j.reason || 'active').toUpperCase()}</strong> · scope=${j.scope || 'all'} · by=${j.by || 'api'}${closed}`;
+        } else {
+          panel.classList.remove('active-panic');
+          titleBox.classList.remove('danger'); titleBox.classList.remove('warn');
+          titleText.textContent = 'Trading Active';
+          statusText.textContent = j.reason ? `Last: ${j.reason}` : '';
+        }
+      } catch {
+        titleText.textContent = 'Status unknown (kill-switch endpoint unreachable)';
+        statusText.textContent = '';
+      }
+
+      // Mode badges via portfolio-state.modeStatus (zie execution.getModeStatus)
+      try {
+        const r = await fetch('/api/portfolio-state?include=mode', { cache: 'no-store' });
+        if (r.ok) {
+          const j = await r.json();
+          const m = j.modeStatus || {};
+          setBadge(merlijnBadge, 'Camelot',
+            m.camelot?.mode || 'paper', m.camelot?.network || null);
+          setBadge(kronosBadge, 'Kronos',
+            m.kronos?.mode || 'paper', m.kronos?.network || null);
+          // Als beide LIVE op mainnet, panel-warn aanzetten
+          const anyMainnet = m.camelot?.network === 'mainnet' || m.kronos?.network === 'mainnet';
+          if (anyMainnet && !panel.classList.contains('active-panic')) {
+            titleBox.classList.add('warn');
+            titleText.textContent = 'Trading Active — LIVE MAINNET';
+          }
+        } else {
+          setBadge(merlijnBadge, 'Camelot', 'paper');
+          setBadge(kronosBadge, 'Kronos', 'paper');
+        }
+      } catch {
+        setBadge(merlijnBadge, 'Camelot', 'paper');
+        setBadge(kronosBadge, 'Kronos', 'paper');
+      }
+    }
+
+    async function callAction(action, opts = {}) {
+      const tok = (tokenInput.value || '').trim();
+      if (!tok) {
+        alert('Vul eerst de kill-switch token in (zelfde als KILL_SWITCH_TOKEN env var op de server).');
+        tokenInput.focus();
+        return;
+      }
+      const scope = scopeSelect.value || 'all';
+      const reason = opts.reason || (action === 'panic' ? 'manual_panic_ui' : action === 'pause' ? 'manual_pause_ui' : 'manual_resume_ui');
+      let confirmMsg = '';
+      if (action === 'panic') {
+        confirmMsg = `⚠️ PANIC CLOSE\n\nDit sluit ALLE open posities (${scope}) op huidige markt-prijs en blokkeert nieuwe trades.\n\nWeet je het zeker?`;
+      } else if (action === 'pause') {
+        confirmMsg = `Pauzeer ${scope}? (Bestaande posities blijven open, geen nieuwe trades.)`;
+      } else if (action === 'resume') {
+        confirmMsg = `Hervat trading?`;
+      }
+      if (confirmMsg && !confirm(confirmMsg)) return;
+
+      [btnPause, btnPanic, btnResume].forEach(b => b.disabled = true);
+      try {
+        const url = `/api/kill-switch?action=${action}&bot=${encodeURIComponent(scope)}&reason=${encodeURIComponent(reason)}&by=ui`;
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' },
+        });
+        const j = await r.json();
+        if (!r.ok) {
+          alert(`Failed: ${j.error || r.statusText}`);
+        } else if (action === 'panic') {
+          alert(`PANIC executed.\nClosed: ${j.closedCount}\nErrors: ${(j.errors || []).join(', ') || 'none'}`);
+        }
+      } catch (e) {
+        alert(`Network error: ${e.message}`);
+      } finally {
+        [btnPause, btnPanic, btnResume].forEach(b => b.disabled = false);
+        await refreshStatus();
+      }
+    }
+
+    btnPause.addEventListener('click', () => callAction('pause'));
+    btnPanic.addEventListener('click', () => callAction('panic'));
+    btnResume.addEventListener('click', () => callAction('resume'));
+
+    refreshStatus();
+    setInterval(refreshStatus, 15000);
+  })();
+  </script>
+
+  <!-- Bot Selectie -->
+  <div class="card" id="botSelectCard">
+    <div class="card-title">
+      <div class="icon">B</div> Bot Selectie
+      <span style="font-size:11px; font-weight:500; color:#7a8a90; margin-left:10px;">
+        kies welke engines nieuwe trades mogen openen
+      </span>
+    </div>
+    <div class="bot-select-grid" id="botSelectGrid">
+      <!-- runtime-rendered via renderBotSelect() -->
+      <div style="grid-column:1/-1; padding:10px; font-size:12px; color:#7a8a90;">Laden…</div>
+    </div>
+    <div class="bot-select-savebar" id="botSelectSavebar">
+      <span id="botSelectStatus">Status wordt opgehaald…</span>
+      <button class="btn btn-outline" id="botSelectSaveBtn" style="display:none; padding:6px 14px; font-size:12px;" onclick="saveBotSelect()">Opslaan</button>
+    </div>
+    <div style="margin-top:8px; font-size:11px; color:#7a8a90; line-height:1.45;">
+      Als een bot uit staat blijven open posities gewoon managed (stops, targets, trailing) — alleen <em>nieuwe</em> entries worden geblokkeerd.
+    </div>
+  </div>
+
+  <!-- Portfolio Summary (incl. compact equity-curve sinds start) -->
+  <div class="card">
+    <div class="card-title"><div class="icon">P</div> Portfolio Summary</div>
+    <div class="summary-grid" id="summaryGrid">
+      <div class="summary-item">
+        <div class="label">Total Balance</div>
+        <div class="value" id="sumBalance">&euro;1.000,00</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Total P&amp;L</div>
+        <div class="value" id="sumPnl">$0.00 (0.00%)</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Win Rate</div>
+        <div class="value" id="sumWinRate">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Closed Trades</div>
+        <div class="value" id="sumTrades">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Open Positions</div>
+        <div class="value" id="sumOpen">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Best Trade</div>
+        <div class="value positive" id="sumBest">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Worst Trade</div>
+        <div class="value negative" id="sumWorst">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Gestart op</div>
+        <div class="value" id="sumStartDate" style="font-size:14px;">-</div>
+      </div>
+    </div>
+
+    <!-- Compact Equity Curve sinds start -->
+    <div class="history-equity-mini">
+      <div class="history-equity-mini-head">
+        <span class="history-equity-mini-title">
+          Equity Curve sinds start
+          <span id="historyEquityRange"></span>
+          <span id="historyEquityLiveBadge" class="history-equity-live-badge">LIVE</span>
+        </span>
+        <span class="history-equity-mini-pills">
+          <span class="history-equity-pill active" data-bot="total" onclick="switchHistoryBot('total', this)">Totaal</span>
+          <span class="history-equity-pill" data-bot="all" onclick="switchHistoryBot('all', this)">Per bot</span>
+          <span class="history-equity-pill" data-bot="camelot" onclick="switchHistoryBot('camelot', this)">Camelot</span>
+          <span class="history-equity-pill" data-bot="kronos" onclick="switchHistoryBot('kronos', this)">Kronos</span>
+        </span>
+      </div>
+      <div class="history-equity-wrap">
+        <canvas id="historyEquityCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Open Positions -->
+  <div class="card">
+    <div class="card-title"><div class="icon">O</div> Open Positions</div>
+    <div id="positionsContainer">
+      <div class="empty-state">No open positions</div>
+    </div>
+  </div>
+
+  <!-- Signal Monitor -->
+  <div class="card">
+    <div class="card-title"><div class="icon">S</div> Signal Monitor</div>
+    <div class="signal-grid" id="signalGrid">
+      <div class="loading"><div class="spinner"></div> Loading signals...</div>
+    </div>
+  </div>
+
+  <!-- Equity Curve (live) verwijderd — dezelfde wavy line zit nu in
+       "Equity Curve sinds start" binnen Portfolio Summary. -->
+
+  <!-- Trade Log -->
+  <div class="card">
+    <div class="card-title"><div class="icon">T</div> Closed Trades</div>
+    <div class="trade-log-wrap" id="tradeLogContainer">
+      <div class="empty-state">No completed trades yet</div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="card-title"><div class="icon">G</div> Settings</div>
+    <div class="settings-grid">
+      <div class="setting-item">
+        <label>Startkapitaal (&euro;)</label>
+        <input type="number" id="settingCapital" value="10000" min="100" step="100" onchange="updateSetting('startBalance', this.value)">
+      </div>
+      <div class="setting-item">
+        <label title="Bovenste cap per positie. Werkelijke size = risk-based: balance × 1% × ster-multiplier ÷ afstand-tot-stop. Wordt daarna afgekapt op deze %.">Max Position Size (% van balance) ⓘ</label>
+        <input type="number" id="settingPosSize" value="10" min="5" max="100" step="1" onchange="updateSetting('positionSizePct', this.value)">
+        <div style="font-size:10.5px; color:#7a8a90; margin-top:6px; line-height:1.4;">
+          Cap per positie. Werkelijke size = risk-based<br>
+          (1% balance × ster-mult ÷ stop-afstand), dan afgekapt.
+        </div>
+      </div>
+      <div class="setting-item">
+        <label title="Maximaal aantal gelijktijdig open posities. Cash-buffer guard houdt 25% startBalance vrij → effective max ~7-8 posities.">Max Open Positions ⓘ</label>
+        <input type="number" id="settingMaxPos" value="10" min="1" max="12" step="1" onchange="updateSetting('maxPositions', this.value)">
+        <div style="font-size:10.5px; color:#7a8a90; margin-top:6px; line-height:1.4;">
+          Cap = 10. Cash-buffer guard houdt 25% vrij → effective ~7-8 actief.<br>
+          Correlation-cap: max 4 LONGs tegelijk (flash-crash bescherming).
+        </div>
+      </div>
+      <div class="setting-item" id="autoTradeItem">
+        <label>Auto-Trade</label>
+        <div class="toggle-wrap" id="autoTradeToggleWrap">
+          <div class="toggle active" id="toggleAutoTrade" onclick="toggleAuto()"></div>
+          <span class="toggle-label" id="autoTradeLabel">Enabled</span>
+        </div>
+        <div id="autoTradeServerBadge" style="display:none; padding:10px 14px; background:linear-gradient(135deg,#012D4C 0%,#014a7a 100%); color:#fff; border-radius:8px; font-size:12px; font-weight:600; line-height:1.4;">
+          🟢 Server engine handelt 24/7
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn btn-danger" onclick="resetPaperTrading()">Reset Paper Trading</button>
+      <button class="btn btn-outline" onclick="exportTrades()">Export Trades (CSV)</button>
+    </div>
+  </div>
+
+  <!-- Kronos sandbox UI removed; positions are merged into main #positionsContainer -->
+  <div id="kronosTestCard" style="display:none;">
+    <span id="kPortfolio"></span><span id="kPnl"></span><span id="kBalance"></span>
+    <span id="kOpen"></span><span id="kTrades"></span><span id="kWinRate"></span>
+    <div id="kronosPositionsContainer"></div><div id="kronosTradesContainer"></div>
+  </div>
+
+  <div class="footer">
+    Camelot Tim's Trading Bot &mdash; &copy; Camelot bv<br>
+    <span style="font-size:11px; color:#7a8a90; margin-top:6px; display:inline-block; max-width:760px; line-height:1.55;">
+      Signalen in <strong>paper modus</strong> zijn uitsluitend voor educatieve doeleinden en vormen geen financieel advies.
+      Het gebruik van de Camelot Tim's Trading Bot in <strong>Live modus</strong> buiten clubverband is volledig op eigen risico.
+      De Camelot Tim's Trading Bot mag <strong>NIET</strong> openbaar gedeeld of verspreid worden en is enkel toegankelijk voor de leden van de club.
+    </span>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+
+<!-- Shared wave engine — fetchEWAudit / detectElliottWave / _ewPending / _ewStr / prefetchAllEW.
+     Voorheen inline gedefinieerd (~85 regels) en dubbel in index.html. -->
+<script src="/lib/wave-engine.js"></script>
+
+<script>
+// =============================================
+// STATE MANAGEMENT
+// =============================================
+const PT_KEY = 'merlijn_paper_trading';
+const NTFY_TOPIC = 'camelot-signals'; // zelfde topic als signalen
+const TOKENS = [
+  { symbol: 'BTCUSDT', market: 'BTC-EUR', name: 'BTC', icon: 'B', iconClass: 'icon-btc' },
+  { symbol: 'ETHUSDT', market: 'ETH-EUR', name: 'ETH', icon: 'E', iconClass: 'icon-eth' },
+  { symbol: 'SOLUSDT', market: 'SOL-EUR', name: 'SOL', icon: 'S', iconClass: 'icon-sol' },
+  { symbol: 'RENDERUSDT', market: 'RENDER-EUR', name:'RENDER' },
+  { symbol: 'BNBUSDT', market: 'BNB-EUR', name: 'BNB', icon: 'B', iconClass: 'icon-bnb' },
+  { symbol: 'HBARUSDT', market: 'HBAR-EUR', name: 'HBAR', icon: 'H', iconClass: 'icon-hbar' },
+  { symbol: 'XRPUSDT', market: 'XRP-EUR', name: 'XRP', icon: 'X', iconClass: 'icon-xrp' },
+  { symbol: 'AVAXUSDT', market: 'AVAX-EUR', name: 'AVAX', icon: 'A', iconClass: 'icon-avax' },
+  { symbol: 'LINKUSDT', market: 'LINK-EUR', name: 'LINK', icon: 'L', iconClass: 'icon-link' },
+  { symbol: 'ADAUSDT',  market: 'ADA-EUR',  name: 'ADA',  icon: 'A', iconClass: 'icon-ada'  },
+  { symbol: 'DOTUSDT',  market: 'DOT-EUR',  name: 'DOT',  icon: 'D', iconClass: 'icon-dot'  },
+  { symbol: 'POLUSDT',  market: 'POL-EUR',  name: 'POL',  icon: 'P', iconClass: 'icon-pol'  },
+  { symbol: 'DOGEUSDT', market: 'DOGE-EUR', name: 'DOGE', icon: 'D', iconClass: 'icon-doge' },
+  // ── Universe-uitbreiding (Phase 2, 2026-04-23) ──
+  // HYPE niet opgenomen: Hyperliquid is futures-only, signal monitor is spot.
+  { symbol: 'SUIUSDT',  market: 'SUI-EUR',  name: 'SUI',  icon: 'S', iconClass: 'icon-sui'  },
+  { symbol: 'TRXUSDT',  market: 'TRX-EUR',  name: 'TRX',  icon: 'T', iconClass: 'icon-trx'  },
+  // ── 2026-04-23 add-on: XLM (Stellar) — Spot $8.9M / Fut $44.6M, ~6yr history ──
+  { symbol: 'XLMUSDT',  market: 'XLM-EUR',  name: 'XLM',  icon: 'X', iconClass: 'icon-xlm'  },
+];
+
+// ── ntfy Push voor trades (UITGESCHAKELD) ──
+// Signalen worden uitsluitend server-side gepusht via /api/signals-cron.
+// No-op behouden voor backwards compat.
+async function pushTradeNtfy(title, body, isBuy) {
+  console.log('[ntfy] Paper-trading push uitgeschakeld — server-cron is de enige bron.');
+  return;
+}
+
+function defaultState() {
+  return {
+    mode: 'paper',
+    balance: 10000,
+    startBalance: 10000,
+    positions: [],
+    trades: [],
+    startDate: Date.now(),
+    equityCurve: [{ time: Date.now(), value: 10000 }],
+    settings: {
+      positionSizePct: 25,
+      maxPositions: 3,
+      autoTrade: true,
+    },
+    lastSignals: {},
+  };
+}
+
+let state = loadState();
+let candleCache = {};
+let kronosCache = {};
+let priceCache = {};
+let signalCache = {};
+let refreshTimer = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(PT_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (!s.equityCurve) s.equityCurve = [{ time: Date.now(), value: s.balance || 10000 }];
+      if (!s.startDate) s.startDate = Date.now();
+      if (!s.lastSignals) s.lastSignals = {};
+      if (!s.settings) s.settings = { positionSizePct: 10, maxPositions: 10, autoTrade: true };
+      // ── Migratie: forceer nieuwe optimale defaults bij oude waarden ──
+      // Server-engine draait nu op 10/10/1% (10×10% = 100% over 12-token universe).
+      if (s.settings.positionSizePct === 33) s.settings.positionSizePct = 10;
+      if (s.settings.positionSizePct === 25) s.settings.positionSizePct = 10;
+      if (s.settings.maxPositions === 3)     s.settings.maxPositions = 10;
+      if (s.settings.maxPositions === 4)     s.settings.maxPositions = 10;
+      return s;
+    }
+  } catch (e) {}
+  return defaultState();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(PT_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error('[Storage] Failed to save state:', e.message);
+    showToast('Storage vol — trade data kan niet opgeslagen worden!', 'sell');
+  }
+}
+
+// =============================================
+// DYNAMIC SIGNAL CONFIG
+// =============================================
+let _signalParams = null;
+(async function loadSignalParams() {
+  try {
+    const resp = await fetch('/api/signal-config');
+    if (resp.ok) {
+      _signalParams = await resp.json();
+      console.log('[SignalConfig] Paper-trading geladen:', _signalParams._label, '(v' + _signalParams._version + ')');
+    }
+  } catch (e) { console.warn('[SignalConfig] Fallback naar defaults:', e.message); }
+})();
+
+// =============================================
+// TECHNICAL INDICATORS
+// =============================================
+function calcEMA(data, period) {
+  const k = 2 / (period + 1);
+  const ema = [data[0]];
+  for (let i = 1; i < data.length; i++) {
+    ema.push(data[i] * k + ema[i - 1] * (1 - k));
+  }
+  return ema;
+}
+
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return Array(closes.length).fill(50);
+  const rsi = Array(period).fill(50);
+  let avgGain = 0, avgLoss = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = closes[i] - closes[i - 1];
+    if (d > 0) avgGain += d; else avgLoss += Math.abs(d);
+  }
+  avgGain /= period; avgLoss /= period;
+  rsi.push(avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss));
+  for (let i = period + 1; i < closes.length; i++) {
+    const d = closes[i] - closes[i - 1];
+    avgGain = (avgGain * (period - 1) + (d > 0 ? d : 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + (d < 0 ? Math.abs(d) : 0)) / period;
+    rsi.push(avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss));
+  }
+  return rsi;
+}
+
+// =============================================
+// ELLIOTT WAVE DETECTION (for signal context)
+// =============================================
+// EW engine is geëxtraheerd naar /lib/wave-engine.js (zie <script src="..."> hierboven).
+// Beschikbaar op window: _ewPending, fetchEWAudit, prefetchAllEW, detectElliottWave, _ewStr.
+// Paper trading gebruikt alleen 4h tf → roep prefetchAllEW({tfs:['4h']}) aan i.p.v. default 4h+1M.
+
+// =============================================
+// SIGNAL ENGINE (exact copy from main dashboard)
+// =============================================
+function generateSignals(candles, timeframe = '4h', kronosScore = 0, waveContext = null) {
+  const is4H = timeframe === '4h';
+  const closes = candles.map(c => c.close);
+  const ema9 = calcEMA(closes, 9);
+  const ema21 = calcEMA(closes, 21);
+  const ema50 = calcEMA(closes, 50);
+  const ema12 = calcEMA(closes, 12);
+  const ema26 = calcEMA(closes, 26);
+  const macdLine = ema12.map((v, j) => v - ema26[j]);
+  const macdSignal = calcEMA(macdLine, 9);
+  const markers = [];
+  let lastBuyIdx = -10, lastSellIdx = -10;
+
+  // ═══ Dynamic parameters from signal-params.json ═══
+  const cfg = _signalParams ? (is4H ? _signalParams['4h'] : _signalParams['monthly']) : null;
+  const P = {
+    emaIndWeight:   cfg?.emaIndWeight   ?? 2,
+    emaScoreWeight: cfg?.emaScoreWeight ?? 3,
+    macdIndWeight:  cfg?.macdIndWeight  ?? 1,
+    macdScoreWeight:cfg?.macdScoreWeight?? 2,
+    rsi_ob1: cfg?.rsi_ob1 ?? 75, rsi_ob2: cfg?.rsi_ob2 ?? 70, rsi_ob3: cfg?.rsi_ob3 ?? 65,
+    rsi_os1: cfg?.rsi_os1 ?? 30, rsi_os2: cfg?.rsi_os2 ?? 35, rsi_os3: cfg?.rsi_os3 ?? 40,
+    mom_drop: cfg?.mom_drop ?? 0.03, mom_rise: cfg?.mom_rise ?? 0.05,
+    mom_highDrop: cfg?.mom_highDrop ?? 0.08, mom_lowRise: cfg?.mom_lowRise ?? 0.12,
+    candleWeight:  cfg?.candleWeight  ?? 1,
+    volMultiplier: cfg?.volMultiplier  ?? 1.5,
+    volWeight:     cfg?.volWeight      ?? 1,
+    trendWeight:   cfg?.trendWeight    ?? 1,
+    cooldown:      cfg?.cooldown       ?? 12,
+    minIndicators: cfg?.minIndicators  ?? (is4H ? 3 : 2),
+    minScore:      cfg?.minScore       ?? 3,
+    minStars:      cfg?.minStars       ?? 3,
+    requireTrendAlignment: cfg?.requireTrendAlignment ?? true,
+    antiTrendBlock:        cfg?.antiTrendBlock        ?? true,
+    requireMultiCandle:    cfg?.requireMultiCandle    ?? true,
+  };
+
+  for (let i = 2; i < candles.length; i++) {
+    const c = candles[i];
+    let bullIndicators = 0, bearIndicators = 0;
+    let bullScore = 0, bearScore = 0;
+
+    // 1. EMA 9/21 crossover
+    if (ema9[i] > ema21[i] && ema9[i-1] <= ema21[i-1]) { bullIndicators += P.emaIndWeight; bullScore += P.emaScoreWeight; }
+    if (ema9[i] < ema21[i] && ema9[i-1] >= ema21[i-1]) { bearIndicators += P.emaIndWeight; bearScore += P.emaScoreWeight; }
+
+    // 2. MACD crossover
+    if (i >= 27) {
+      if (macdLine[i] > macdSignal[i] && macdLine[i-1] <= macdSignal[i-1]) { bullIndicators += P.macdIndWeight; bullScore += P.macdScoreWeight; }
+      if (macdLine[i] < macdSignal[i] && macdLine[i-1] >= macdSignal[i-1]) { bearIndicators += P.macdIndWeight; bearScore += P.macdScoreWeight; }
+    }
+
+    // 3. RSI (dynamic thresholds)
+    if (i >= 15) {
+      const rsi = calcRSI(closes.slice(0, i + 1));
+      const lastRSI = rsi[rsi.length - 1];
+      if (lastRSI >= P.rsi_ob1) { bearIndicators += 2; bearScore += 4; }
+      else if (lastRSI >= P.rsi_ob2) { bearIndicators += 2; bearScore += 3; }
+      else if (lastRSI >= P.rsi_ob3) { bearIndicators++; bearScore += 2; }
+      if (lastRSI <= P.rsi_os1) { bullIndicators += 2; bullScore += 4; }
+      else if (lastRSI <= P.rsi_os2) { bullIndicators += 2; bullScore += 3; }
+      else if (lastRSI <= P.rsi_os3) { bullIndicators++; bullScore += 2; }
+    }
+
+    // 4. Price momentum (dynamic)
+    if (i >= 3) {
+      const pctChange = (c.close - candles[i-1].close) / candles[i-1].close;
+      if (pctChange <= -P.mom_drop) { bearIndicators++; bearScore += 1; }
+      if (pctChange >= P.mom_rise) { bullIndicators++; bullScore += 1; }
+      const recent24High = Math.max(...candles.slice(Math.max(0, i-6), i+1).map(x => x.high));
+      const recent24Low = Math.min(...candles.slice(Math.max(0, i-6), i+1).map(x => x.low));
+      const dropFromHigh = (recent24High - c.close) / recent24High;
+      const riseFromLow = (c.close - recent24Low) / recent24Low;
+      if (dropFromHigh > P.mom_highDrop) { bullIndicators++; bullScore += 1; }
+      if (riseFromLow > P.mom_lowRise) { bearIndicators++; bearScore += 1; }
+    }
+
+    // 5. Candle patterns (dynamic weight)
+    if (i >= 1) {
+      const prev = candles[i-1], curr = candles[i];
+      if (prev.close > prev.open && curr.close < curr.open && curr.close < prev.open && curr.open > prev.close) { bearIndicators++; bearScore += P.candleWeight; }
+      if (prev.close < prev.open && curr.close > curr.open && curr.close > prev.open && curr.open < prev.close) { bullIndicators++; bullScore += P.candleWeight; }
+      const body = Math.abs(c.close - c.open);
+      const upperWick = c.high - Math.max(c.open, c.close);
+      const lowerWick = Math.min(c.open, c.close) - c.low;
+      if (body > 0) {
+        if (upperWick > body * 2 && lowerWick < body * 0.5 && c.close < c.open) { bearIndicators++; bearScore += P.candleWeight; }
+        if (lowerWick > body * 2 && upperWick < body * 0.5 && c.close > c.open) { bullIndicators++; bullScore += P.candleWeight; }
+      }
+    }
+
+    // 6. Volume spike (dynamic multiplier & weight)
+    if (i >= 20) {
+      const avgVol = candles.slice(i-20, i).reduce((s,x) => s+x.volume, 0) / 20;
+      if (candles[i].volume > avgVol * P.volMultiplier) {
+        if (bullScore > bearScore) bullScore += P.volWeight;
+        if (bearScore > bullScore) bearScore += P.volWeight;
+      }
+    }
+
+    // 7. Trend context (dynamic weight)
+    if (i >= 50) {
+      if (closes[i] > ema50[i] && bullScore > bearScore) bullScore += P.trendWeight;
+      if (closes[i] < ema50[i] && bearScore > bullScore) bearScore += P.trendWeight;
+    }
+
+    // 8. Kronos AI (only last candle)
+    if (i === candles.length - 1 && kronosScore !== 0) {
+      if (kronosScore >= 10) { bullIndicators += 2; bullScore += 3; }
+      else if (kronosScore >= 5) { bullIndicators++; bullScore += 2; }
+      else if (kronosScore >= 2) { bullScore += 1; }
+      if (kronosScore <= -10) { bearIndicators += 2; bearScore += 3; }
+      else if (kronosScore <= -5) { bearIndicators++; bearScore += 2; }
+      else if (kronosScore <= -2) { bearScore += 1; }
+    }
+
+    // 9. Elliott Wave context — active scoring + blocking (only last candle)
+    let ewBlockBull = false, ewBlockBear = false;
+    if (waveContext && i === candles.length - 1) {
+      const wl = typeof waveContext === 'object' ? waveContext.label : waveContext;
+      // Active scoring: wave completion = strong signal
+      if (['W2','W4','C'].includes(wl)) { bullIndicators += 2; bullScore += 4; }   // bottom → BUY
+      if (['W3','W5','B'].includes(wl)) { bearIndicators += 2; bearScore += 4; }   // top → SELL
+      // Blocking: don't fight the wave
+      const impulseWaves   = ['W1','W3','W5'];
+      const correctionWaves = ['W2','W4','A','B','C'];
+      if (impulseWaves.includes(wl))    ewBlockBear = true;
+      if (correctionWaves.includes(wl)) ewBlockBull = true;
+    }
+
+    // ═══ 10. Trend Alignment — EMA cascade (v3, dynamic) ═══
+    let trendAligned = true;
+    if (P.requireTrendAlignment && i >= 50) {
+      const bullAlignment = ema9[i] > ema21[i] && ema21[i] > ema50[i];
+      const bearAlignment = ema9[i] < ema21[i] && ema21[i] < ema50[i];
+      if (bullScore > bearScore && !bullAlignment) trendAligned = false;
+      if (bearScore > bullScore && !bearAlignment) trendAligned = false;
+    }
+
+    // ═══ 11. Anti-Trend Block — niet kopen onder EMA50 (dynamic) ═══
+    let antiTrendBlocked = false;
+    if (P.antiTrendBlock && i >= 50) {
+      if (bullScore > bearScore && closes[i] < ema50[i]) antiTrendBlocked = true;
+      if (bearScore > bullScore && closes[i] > ema50[i]) antiTrendBlocked = true;
+    }
+
+    // ═══ 12. Multi-Candle Confirmatie — 2+ candles zelfde richting (dynamic) ═══
+    let multiCandleOk = true;
+    if (P.requireMultiCandle && i >= 2) {
+      if (bullScore > bearScore) {
+        multiCandleOk = candles[i].close > candles[i].open && candles[i-1].close > candles[i-1].open;
+      } else if (bearScore > bullScore) {
+        multiCandleOk = candles[i].close < candles[i].open && candles[i-1].close < candles[i-1].open;
+      }
+    }
+
+    // ═══ 13. Extreme Drawdown Filter — blokkeer SELL na >60% daling ═══
+    let extremeDrawdown = false;
+    if (i >= 6) {
+      const lookback = Math.min(i, 120);
+      const recentHigh = Math.max(...candles.slice(Math.max(0, i - lookback), i + 1).map(x => x.high));
+      const drawdownPct = (recentHigh - c.close) / recentHigh;
+      if (drawdownPct > 0.60 && bearScore > bullScore) extremeDrawdown = true;
+    }
+
+    // ═══ Signaal generatie (v3 — dynamische params, 97% accuratie target) ═══
+    const netScore = bullScore - bearScore;
+    const absScore = Math.abs(netScore);
+    const stars = Math.min(5, absScore);
+    const passFilters = trendAligned && !antiTrendBlocked && multiCandleOk && !extremeDrawdown;
+    const isBull = !ewBlockBull && passFilters && netScore > 0 && bullIndicators >= P.minIndicators && absScore >= P.minScore && stars >= P.minStars;
+    const isBear = !ewBlockBear && passFilters && netScore < 0 && bearIndicators >= P.minIndicators && absScore >= P.minScore && stars >= P.minStars;
+
+    if (isBull && (i - lastBuyIdx) >= P.cooldown) {
+      markers.push({ time: c.time, type: 'BUY', price: c.close, stars, index: i });
+      lastBuyIdx = i;
+    } else if (isBear && (i - lastSellIdx) >= P.cooldown) {
+      markers.push({ time: c.time, type: 'SELL', price: c.close, stars, index: i });
+      lastSellIdx = i;
+    }
+  }
+  return { markers };
+}
+
+// ATR-based levels
+function calc4hLevels(candles, signalType, kronos = {}) {
+  const len = candles.length;
+  const close = candles[len - 1].close;
+  let atrSum = 0;
+  for (let i = len - 14; i < len; i++) {
+    if (i < 1) continue;
+    const tr = Math.max(candles[i].high - candles[i].low, Math.abs(candles[i].high - candles[i-1].close), Math.abs(candles[i].low - candles[i-1].close));
+    atrSum += tr;
+  }
+  const atr = atrSum / 14;
+  const lookback = candles.slice(-24);
+  const recentHigh = Math.max(...lookback.map(c => c.high));
+  const recentLow = Math.min(...lookback.map(c => c.low));
+  const kronosForecast = kronos.forecast || null;
+  const kronosPct = kronos.pct || 0;
+  const kronosOnline = !kronos.offline && kronosForecast;
+
+  if (signalType === 'BUY') {
+    const atrTarget = close + atr * 2.5;
+    let uitstap = kronosOnline && kronosPct > 0
+      ? Math.max(Math.max(atrTarget, recentHigh * 1.005) * 0.6 + kronosForecast * 0.4, atrTarget)
+      : Math.max(atrTarget, recentHigh * 1.005);
+    const stop = Math.min(close - atr * 1.2, recentLow * 0.995, close - atr);
+    return { instap: close, uitstap, stop };
+  } else {
+    const atrTarget = close - atr * 2.5;
+    let uitstap = kronosOnline && kronosPct < 0
+      ? Math.min(Math.min(atrTarget, recentLow * 0.995) * 0.6 + kronosForecast * 0.4, atrTarget)
+      : Math.min(atrTarget, recentLow * 0.995);
+    const stop = Math.max(close + atr * 1.2, recentHigh * 1.005, close + atr);
+    return { instap: close, uitstap, stop };
+  }
+}
+
+// =============================================
+// DATA FETCHING
+// =============================================
+async function fetchCandles(symbol) {
+  // Zoek EUR market voor deze token
+  const token = TOKENS.find(t => t.symbol === symbol);
+  const market = token ? token.market : null;
+
+  // Primair: Binance USDT (consistent met backend VENUE=binance + Kronos data-source).
+  // Bitvavo blijft als fallback voor het geval Binance geo-blocked is.
+  const urls = [
+    `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=500`,
+    `https://api.binance.us/api/v3/klines?symbol=${symbol}&interval=4h&limit=500`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      return data.map(k => ({
+        time: k[0],
+        open: parseFloat(k[1]),
+        high: parseFloat(k[2]),
+        low: parseFloat(k[3]),
+        close: parseFloat(k[4]),
+        volume: parseFloat(k[5]),
+      }));
+    } catch (e) { continue; }
+  }
+  // Geen Bitvavo fallback meer — 1 data supplier policy.
+  // Bitvavo is EUR-denoted dus signal-levels zouden mismatchen met de
+  // engine (USDT). Bij Binance failure → return null en sla token over.
+  return null;
+}
+
+async function fetchKronos(symbol) {
+  try {
+    // Try Vercel proxy first, fallback to HF Space direct
+    let res;
+    try {
+      res = await fetch(`/api/kronos?symbol=${symbol}`);
+    } catch(e) { res = null; }
+    if (!res || !res.ok) {
+      res = await fetch(`https://camelotlabs-kronos-ai-forecast.hf.space/forecast?symbol=${symbol}`);
+    }
+    if (!res.ok) return { offline: true };
+    return await res.json();
+  } catch (e) {
+    return { offline: true };
+  }
+}
+
+async function fetchBitvavoTicker(market) {
+  try {
+    const res = await fetch(`/api/bitvavo?action=ticker&market=${market}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+async function fetchBitvavoBalance() {
+  try {
+    const res = await fetch(`/api/bitvavo?action=balance`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+async function fetchBitvavoStatus() {
+  try {
+    const res = await fetch(`/api/bitvavo?action=status`);
+    if (!res.ok) return false;
+    const d = await res.json();
+    return d && d.connected;
+  } catch (e) { return false; }
+}
+
+async function placeBitvavoOrder(market, side, amountQuote) {
+  try {
+    const res = await fetch('/api/bitvavo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'order', market, side, orderType: 'market', amountQuote: String(amountQuote) }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+// =============================================
+// TRADING LOGIC — Optimized for profitability
+// =============================================
+// Strategie verbeteringen:
+// 1. Minimum 3 sterren filter (hogere confluence = hoger winstpercentage)
+// 2. Trailing stop-loss (winst beschermen)
+// 3. Breakeven stop na 1x ATR winst
+// 4. Trend filter: alleen LONG boven EMA50, SHORT onder EMA50
+// 5. Risk-based sizing: max 2% risico per trade
+// 6. Partial take-profit: 50% bij target 1, rest trailing
+// 7. Time-exit: sluit na 5 dagen zonder beweging
+// 8. R/R minimaal 1:2.5
+
+const MIN_STARS = 3;          // Minimum 3 sterren (v3 engine vereist min 3 indicatoren)
+const RISK_PER_TRADE = 0.02;  // Base risico per trade (wordt verhoogd bij hogere sterren)
+const BREAKEVEN_ATR = 1.0;    // Na 1x ATR winst → stop naar breakeven
+const TRAIL_ATR = 1.5;        // Trailing stop op 1.5x ATR
+const PARTIAL_PCT = 0.5;      // 50% sluiten bij eerste target
+const MAX_HOLD_HOURS = 120;   // Max 5 dagen (120 uur) vasthouden
+const MIN_RR = 0.5;           // Minimale Risk/Reward ratio (versoepeld voor paper trading)
+const TRADE_FEE = 0.0025;     // 0.25% fee per trade (Bitvavo)
+const SPREAD_PCT = 0.001;     // 0.1% spread simulatie
+
+function getPositionSize(price, stopPrice, stars = 3) {
+  // Risk-based sizing met star-multiplier
+  // Hogere sterren = hogere accuratie = grotere positie
+  // 3★ = 2% risico (basis), 4★ = 3%, 5★ = 4%
+  const starMultiplier = { 3: 1.0, 4: 1.5, 5: 2.0 }[Math.min(5, Math.max(3, stars))] || 1.0;
+  const riskPct = RISK_PER_TRADE * starMultiplier;
+
+  const portfolioValue = calcPortfolioValue();
+  const riskAmount = portfolioValue * riskPct;
+  const riskPerUnit = Math.abs(price - stopPrice);
+  if (riskPerUnit <= 0) return portfolioValue * 0.33; // fallback
+  const units = riskAmount / riskPerUnit;
+  const sizeUsd = units * price;
+  // Max 50% van saldo (verhoogd van 40% wegens hogere accuratie)
+  const maxSize = state.balance * 0.50;
+  return Math.min(sizeUsd, maxSize);
+}
+
+function calcATR(candles, period = 14) {
+  let sum = 0;
+  const len = candles.length;
+  for (let i = len - period; i < len; i++) {
+    if (i < 1) continue;
+    const tr = Math.max(
+      candles[i].high - candles[i].low,
+      Math.abs(candles[i].high - candles[i - 1].close),
+      Math.abs(candles[i].low - candles[i - 1].close)
+    );
+    sum += tr;
+  }
+  return sum / period;
+}
+
+function trendFilter(candles, side) {
+  // Trend filter met RSI override: oversold/overbought overruled de trend
+  if (candles.length < 50) return true;
+  const closes = candles.map(c => c.close);
+  const ema50 = calcEMA(closes, 50);
+  const currentPrice = closes[closes.length - 1];
+  const currentEMA = ema50[ema50.length - 1];
+
+  // RSI check — extreme waarden overrulen trend
+  const rsiArr = calcRSI(closes);
+  const rsi = rsiArr[rsiArr.length - 1];
+
+  // LONG onder EMA50 is normaal geblokkeerd, MAAR RSI < 40 = oversold zone = koopkans
+  if (side === 'LONG' && currentPrice < currentEMA) {
+    if (rsi <= 40) return true; // oversold override
+    return false;
+  }
+  // SHORT boven EMA50 is normaal geblokkeerd, MAAR RSI > 55 = overbought zone = verkoopkans
+  if (side === 'SHORT' && currentPrice > currentEMA) {
+    if (rsi >= 55) return true; // overbought override
+    console.log(`[TrendFilter] ${side} geblokkeerd: prijs ${currentPrice.toFixed(2)} > EMA50 ${currentEMA.toFixed(2)}, RSI ${rsi.toFixed(1)} < 55`);
+    return false;
+  }
+  return true;
+}
+
+function openPosition(token, side, price, levels, stars, kronosDirection, atr) {
+  if (state.positions.length >= state.settings.maxPositions) return;
+  if (state.positions.find(p => p.token === token.name)) return;
+
+  const sizeUsd = getPositionSize(price, levels.stop, stars);
+  if (sizeUsd < 1) return; // te klein
+  if (sizeUsd > state.balance) return; // onvoldoende balans
+
+  // Spread: LONG koopt iets hoger, SHORT verkoopt iets lager
+  const spreadCost = price * SPREAD_PCT / 2;
+  const entryPrice = side === 'LONG' ? price + spreadCost : price - spreadCost;
+
+  // Fee op entry
+  const entryFee = sizeUsd * TRADE_FEE;
+  const effectiveSize = sizeUsd - entryFee;
+  const amount = effectiveSize / entryPrice;
+  price = entryPrice; // gebruik adjusted entry
+
+  // Bereken targets: target1 (partial) en target2 (full)
+  const target1 = side === 'LONG'
+    ? price + (levels.uitstap - price) * 0.6   // 60% van weg naar target
+    : price - (price - levels.uitstap) * 0.6;
+  const target2 = levels.uitstap;
+
+  const pos = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+    token: token.name,
+    market: token.market,
+    side,
+    entryPrice: price,
+    amount,
+    originalAmount: amount,
+    sizeUsd,
+    target: target2,
+    target1: target1,
+    stop: levels.stop,
+    initialStop: levels.stop,
+    trailingStop: levels.stop,
+    atr: atr || Math.abs(price - levels.stop) / 1.2,
+    stars,
+    openTime: Date.now(),
+    kronosDirection: kronosDirection || '',
+    partialClosed: false,   // true nadat 50% gesloten is
+    breakeven: false,       // true nadat stop naar breakeven is verplaatst
+    highWaterMark: price,   // hoogste prijs sinds open (LONG)
+    lowWaterMark: price,    // laagste prijs sinds open (SHORT)
+  };
+
+  state.positions.push(pos);
+  state.balance -= sizeUsd;
+  saveState();
+  const rr = Math.abs(target2 - price) / Math.abs(price - levels.stop);
+  showToast(`${side} ${token.name} @ \u20AC${price.toFixed(6)} | ${stars}\u2605 | R/R 1:${rr.toFixed(1)}`, side === 'LONG' ? 'buy' : 'sell');
+
+  // ntfy trade pushes uitgeschakeld — signaal detectie is server-side via /api/signals-cron
+  // Persoonlijke paper trade meldingen zouden anders duplicaten veroorzaken bij meerdere gebruikers
+}
+
+const _closingPositions = new Set();
+function closePosition(posId, exitPrice, reason, partialPct = 1.0) {
+  // ── ARCHITECTUUR-GUARD (2026-04-23) ──
+  // In server-mode (paper-engine.js doet authoritative lifecycle in Vercel)
+  // mag de client GEEN posities lokaal sluiten. Anders:
+  //   - trade record wordt alleen lokaal geschreven (verdwijnt na 30s sync)
+  //   - positie komt terug uit server-state
+  //   - trade krijgt geen `bot` field → verkeerd badge
+  // Manual closes lopen nu via /api/paper-engine?action=close-position (zie
+  // manualClose hieronder). Deze legacy functie blijft alleen actief voor
+  // lokale-only mode (geen server). Stop/target detectie loopt sowieso al
+  // server-side via paper-engine cron in server-mode.
+  if (typeof _serverSyncActive !== 'undefined' && _serverSyncActive) {
+    console.warn(`[closePosition] server-mode actief — local close geblokkeerd voor ${posId} (${reason}); gebruik manualClose() voor server-side close`);
+    return;
+  }
+  const idx = state.positions.findIndex(p => p.id === posId);
+  if (idx === -1) return;
+  // Guard: prevent concurrent double-close
+  const closeKey = `${posId}_${partialPct}`;
+  if (_closingPositions.has(closeKey)) return;
+  _closingPositions.add(closeKey);
+  setTimeout(() => _closingPositions.delete(closeKey), 1000);
+  const pos = state.positions[idx];
+
+  const closeAmount = pos.amount * partialPct;
+  const closeSizeUsd = pos.sizeUsd * partialPct;
+
+  // Spread op exit: LONG verkoopt iets lager, SHORT koopt iets hoger
+  const spreadCost = exitPrice * SPREAD_PCT / 2;
+  const adjustedExit = pos.side === 'LONG' ? exitPrice - spreadCost : exitPrice + spreadCost;
+
+  let grossPnl;
+  if (pos.side === 'LONG') {
+    grossPnl = (adjustedExit - pos.entryPrice) * closeAmount;
+  } else {
+    grossPnl = (pos.entryPrice - adjustedExit) * closeAmount;
+  }
+
+  // Fee op exit
+  const exitFee = Math.abs(adjustedExit * closeAmount) * TRADE_FEE;
+  const pnl = grossPnl - exitFee;
+
+  const pnlPct = (pnl / closeSizeUsd) * 100;
+  const returnedValue = closeSizeUsd + pnl;
+  state.balance += returnedValue;
+
+  // Kosten berekenen: entry fee + exit fee + spread kosten
+  const entryFee = closeSizeUsd * TRADE_FEE;
+  const entrySpread = pos.entryPrice * SPREAD_PCT / 2 * closeAmount;
+  const exitSpread = exitPrice * SPREAD_PCT / 2 * closeAmount;
+  const totalCosts = entryFee + exitFee + entrySpread + exitSpread;
+
+  const trade = {
+    id: pos.id + (partialPct < 1 ? '_partial' : ''),
+    token: pos.token,
+    side: pos.side,
+    entryPrice: pos.entryPrice,
+    exitPrice,
+    amount: closeAmount,
+    sizeUsd: closeSizeUsd,
+    pnl,
+    pnlPct,
+    entryFee,
+    exitFee,
+    totalCosts,
+    stars: pos.stars,
+    openTime: pos.openTime,
+    closeTime: Date.now(),
+    reason,
+  };
+
+  state.trades.push(trade);
+
+  if (partialPct >= 1.0) {
+    // Volledige sluiting
+    state.positions.splice(idx, 1);
+  } else {
+    // Partial close: verlaag positie
+    pos.amount -= closeAmount;
+    pos.sizeUsd -= closeSizeUsd;
+    pos.partialClosed = true;
+  }
+  saveState();
+
+  const pnlStr = pnl >= 0 ? `+\u20AC${pnl.toFixed(2)}` : `-\u20AC${Math.abs(pnl).toFixed(2)}`;
+  const pctLabel = partialPct < 1 ? ` (${Math.round(partialPct*100)}%)` : '';
+  showToast(`${pos.side} ${pos.token} ${pnlStr}${pctLabel} (${reason})`, pnl >= 0 ? 'buy' : 'sell');
+
+  // ntfy trade pushes uitgeschakeld — server-side signaal detectie via /api/signals-cron
+}
+
+function checkStopTarget(pos, currentPrice) {
+  const atr = pos.atr || 0;
+
+  // ── 1. Update high/low water marks ──
+  if (pos.side === 'LONG') {
+    if (currentPrice > pos.highWaterMark) pos.highWaterMark = currentPrice;
+  } else {
+    if (currentPrice < pos.lowWaterMark) pos.lowWaterMark = currentPrice;
+  }
+
+  // ── 2. Time-exit: sluit na MAX_HOLD_HOURS als P&L < 1% ──
+  const holdHours = (Date.now() - pos.openTime) / (1000 * 60 * 60);
+  if (holdHours > MAX_HOLD_HOURS) {
+    const unrealizedPct = pos.side === 'LONG'
+      ? (currentPrice - pos.entryPrice) / pos.entryPrice * 100
+      : (pos.entryPrice - currentPrice) / pos.entryPrice * 100;
+    if (unrealizedPct < 1.0) {
+      closePosition(pos.id, currentPrice, 'Time Exit (5d)');
+      return true;
+    }
+  }
+
+  // ── 3. Breakeven stop: na 1x ATR winst, verplaats stop naar entry ──
+  if (!pos.breakeven && atr > 0) {
+    const profit = pos.side === 'LONG'
+      ? currentPrice - pos.entryPrice
+      : pos.entryPrice - currentPrice;
+    if (profit >= atr * BREAKEVEN_ATR) {
+      pos.breakeven = true;
+      if (pos.side === 'LONG') {
+        pos.stop = Math.max(pos.stop, pos.entryPrice + atr * 0.1); // iets boven entry
+      } else {
+        pos.stop = Math.min(pos.stop, pos.entryPrice - atr * 0.1);
+      }
+      saveState();
+    }
+  }
+
+  // ── 4. Trailing stop: na breakeven, trail op 1.5x ATR ──
+  if (pos.breakeven && atr > 0) {
+    if (pos.side === 'LONG') {
+      const newTrail = pos.highWaterMark - atr * TRAIL_ATR;
+      if (newTrail > pos.stop) {
+        pos.stop = newTrail;
+        saveState();
+      }
+    } else {
+      const newTrail = pos.lowWaterMark + atr * TRAIL_ATR;
+      if (newTrail < pos.stop) {
+        pos.stop = newTrail;
+        saveState();
+      }
+    }
+  }
+
+  // ── 5. Partial take-profit: sluit 50% bij target1 ──
+  if (!pos.partialClosed && pos.target1) {
+    if (pos.side === 'LONG' && currentPrice >= pos.target1) {
+      closePosition(pos.id, currentPrice, 'Target 1 (50%)', PARTIAL_PCT);
+      return false; // positie blijft open met rest
+    }
+    if (pos.side === 'SHORT' && currentPrice <= pos.target1) {
+      closePosition(pos.id, currentPrice, 'Target 1 (50%)', PARTIAL_PCT);
+      return false;
+    }
+  }
+
+  // ── 6. Stop-loss check ──
+  if (pos.side === 'LONG') {
+    if (currentPrice <= pos.stop) {
+      closePosition(pos.id, pos.stop, pos.breakeven ? 'Trailing Stop' : 'Stop-Loss');
+      return true;
+    }
+    if (currentPrice >= pos.target) {
+      closePosition(pos.id, pos.target, 'Target (Full)');
+      return true;
+    }
+  } else {
+    if (currentPrice >= pos.stop) {
+      closePosition(pos.id, pos.stop, pos.breakeven ? 'Trailing Stop' : 'Stop-Loss');
+      return true;
+    }
+    if (currentPrice <= pos.target) {
+      closePosition(pos.id, pos.target, 'Target (Full)');
+      return true;
+    }
+  }
+  return false;
+}
+
+function processSignal(token, signal, candles, kronos) {
+  // Server-mode: 24/7 engine beheert trades, client doet niets
+  if (_serverSyncActive) return;
+  if (!state.settings.autoTrade) {
+    console.log(`[Trade] ${token.name}: autoTrade uit`);
+    return;
+  }
+
+  // ── Filter 1: Minimum sterren ──
+  if (signal.stars < MIN_STARS) {
+    console.log(`[Trade] ${token.name}: ${signal.stars}★ < ${MIN_STARS}★ minimum`);
+    return;
+  }
+
+  const lastSigKey = token.name;
+  const lastSig = state.lastSignals[lastSigKey];
+  if (lastSig && lastSig.time === signal.time && lastSig.type === signal.type) {
+    // Signaal al verwerkt, maar check of positie daadwerkelijk open is
+    if (state.positions.find(p => p.token === token.name)) return;
+    // Positie niet open — probeer opnieuw
+  }
+
+  const side = signal.type === 'BUY' ? 'LONG' : 'SHORT';
+
+  // ── Filter 2: Trend filter (EMA50) — bypass voor 4★+ signalen ──
+  if (signal.stars < 4 && !trendFilter(candles, side)) {
+    console.log(`[Trade] ${token.name} ${side} geblokkeerd: tegen EMA50 trend (${signal.stars}★)`);
+    return;
+  }
+
+  // Bereken levels op basis van HUIDIGE prijs (niet signaalprijs)
+  const currentPrice = candles[candles.length - 1].close;
+  const levels = calc4hLevels(candles, signal.type, kronos);
+  const atr = calcATR(candles);
+
+  // Herbereken levels als signaal ouder is (gebruik huidige prijs als entry)
+  if (Math.abs(signal.price - currentPrice) / currentPrice > 0.005) {
+    // Prijs is >0.5% afgeweken, gebruik huidige prijs
+    if (signal.type === 'BUY') {
+      levels.instap = currentPrice;
+      levels.uitstap = currentPrice + atr * 2.5;
+      levels.stop = Math.min(currentPrice - atr * 1.2, levels.stop);
+    } else {
+      levels.instap = currentPrice;
+      levels.uitstap = currentPrice - atr * 2.5;
+      levels.stop = Math.max(currentPrice + atr * 1.2, levels.stop);
+    }
+    signal.price = currentPrice; // Entry op huidige prijs
+  }
+
+  // ── Filter 3: Minimale R/R ratio — bypass voor 4★+ signalen ──
+  const riskDist = Math.abs(signal.price - levels.stop);
+  const rewardDist = Math.abs(levels.uitstap - signal.price);
+  const rr = riskDist > 0 ? rewardDist / riskDist : 0;
+  if (signal.stars < 4 && rr < MIN_RR) {
+    console.log(`[Trade] ${token.name} ${side} geblokkeerd: R/R ${rr.toFixed(1)} < ${MIN_RR} (${signal.stars}★)`);
+    return;
+  }
+  console.log(`[Trade] ${token.name} ${side} R/R ${rr.toFixed(1)} ${signal.stars}★ — DOORGAAN`);
+
+  // Live mode disabled for public dashboard
+  state.mode = 'paper';
+
+  const existingPos = state.positions.find(p => p.token === token.name);
+
+  if (signal.type === 'BUY') {
+    if (existingPos && existingPos.side === 'SHORT') {
+      closePosition(existingPos.id, signal.price, 'Signal Reversal');
+    }
+    if (!state.positions.find(p => p.token === token.name)) {
+      openPosition(token, 'LONG', signal.price, levels, signal.stars, kronos.direction || '', atr);
+    }
+  } else if (signal.type === 'SELL') {
+    if (existingPos && existingPos.side === 'LONG') {
+      closePosition(existingPos.id, signal.price, 'Signal Reversal');
+    }
+    if (!state.positions.find(p => p.token === token.name) && state.mode === 'paper') {
+      openPosition(token, 'SHORT', signal.price, levels, signal.stars, kronos.direction || '', atr);
+    }
+  }
+
+  // Markeer signaal pas als verwerkt NA succesvolle opening
+  state.lastSignals[lastSigKey] = { time: signal.time, type: signal.type };
+  saveState();
+}
+
+// =============================================
+// MAIN REFRESH LOOP
+// =============================================
+async function refreshAll() {
+  try {
+    // Prefetch centrale EW audit (parallel met candle fetches)
+    // Paper-trading gebruikt alleen 4h, geen 1M (signal engine kijkt niet naar 1M wave context)
+    const ewPrefetch = prefetchAllEW({ tfs: ['4h'] });
+    const fetchPromises = TOKENS.map(async (token) => {
+      const candles = await fetchCandles(token.symbol);
+      if (!candles || candles.length < 60) return;
+      candleCache[token.name] = candles;
+      priceCache[token.name] = candles[candles.length - 1].close;
+
+      const kronos = await fetchKronos(token.symbol);
+      kronosCache[token.name] = kronos;
+
+      const kronosScore = kronos.offline ? 0 : (kronos.score || 0);
+      // Elliott Wave context for signal blocking
+      const highs = candles.map(c => c.high);
+      const lows = candles.map(c => c.low);
+      const currentWave = detectElliottWave(highs, lows, 5, { symbol: token.symbol, tf: '4h' });
+      console.log(`[Bot] ${token.name}: Elliott Wave = ${currentWave.currentWave || currentWave} (conf=${currentWave.primary ? Math.round(currentWave.primary.confidence*100) : '?'}%)`);
+      const { markers: signals } = generateSignals(candles, '4h', kronosScore, currentWave);
+      signalCache[token.name] = signals;
+
+      // Process recent signals (laatste 3 dagen = 18 candles)
+      if (signals.length > 0) {
+        const latest = signals[signals.length - 1];
+        const hasPosition = state.positions.find(p => p.token === token.name);
+        const candleAge = candles.length - 1 - latest.index;
+        console.log(`[Bot] ${token.name}: ${signals.length} signalen, laatste=${latest.type} ${latest.stars}★, leeftijd=${candleAge} candles, positie=${hasPosition ? hasPosition.side : 'geen'}`);
+        if (latest.index >= candles.length - 18) {
+          processSignal(token, latest, candles, kronos);
+        } else {
+          console.log(`[Bot] ${token.name}: signaal te oud (${candleAge} candles > 18)`);
+        }
+      } else {
+        console.log(`[Bot] ${token.name}: geen signalen gegenereerd`);
+      }
+    });
+
+    await Promise.all([ewPrefetch, ...fetchPromises]);
+
+    // Check open positions for stop/target — ALLEEN in lokale modus.
+    // In server-mode heeft paper-engine (Vercel) de authoritative lifecycle:
+    // client mag posities NIET sluiten, anders zie je een flicker (client
+    // sluit lokaal → 30s later haalt syncServerState 'm terug op).
+    if (!_serverSyncActive) {
+      for (const pos of [...state.positions]) {
+        const currentPrice = priceCache[pos.token];
+        if (currentPrice) {
+          checkStopTarget(pos, currentPrice);
+        }
+      }
+    }
+
+    // Update equity curve — gemerged: main + Kronos open PnL (zelfde formule als balance display)
+    const _kc = (typeof kronosContribution === 'function') ? kronosContribution() : { total:0, startSeed:0 };
+    const _kronosNetPnl = (_kc.total || 0) - (_kc.startSeed || 0);
+    const totalValue = calcPortfolioValue() + _kronosNetPnl;
+    if (state.equityCurve.length === 0 || Date.now() - state.equityCurve[state.equityCurve.length - 1].time > 60000) {
+      state.equityCurve.push({ time: Date.now(), value: totalValue });
+      if (state.equityCurve.length > 2000) state.equityCurve = state.equityCurve.slice(-1500);
+    }
+    saveState();
+
+    updateUI();
+    document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    console.error('Refresh error:', e);
+  }
+}
+
+function calcPortfolioValue() {
+  let total = state.balance;
+  for (const pos of state.positions) {
+    const currentPrice = priceCache[pos.token] || pos.entryPrice;
+    // Inclusief geschatte exit kosten (spread + fee)
+    const exitSpread = currentPrice * SPREAD_PCT / 2;
+    const adjExit = pos.side === 'LONG' ? currentPrice - exitSpread : currentPrice + exitSpread;
+    let grossPnl;
+    if (pos.side === 'LONG') {
+      grossPnl = (adjExit - pos.entryPrice) * pos.amount;
+    } else {
+      grossPnl = (pos.entryPrice - adjExit) * pos.amount;
+    }
+    const exitFee = Math.abs(adjExit * pos.amount) * TRADE_FEE;
+    total += pos.sizeUsd + grossPnl - exitFee;
+  }
+  return total;
+}
+
+// =============================================
+// UI UPDATES
+// =============================================
+function updateUI() {
+  updateBalance();
+  updateSummary();
+  updatePositions();
+  updateSignalMonitor();
+  updateTradeLog();
+  drawEquityCurve();
+  if (typeof scheduleHistoryEquityDraw === 'function') scheduleHistoryEquityDraw();
+}
+
+// ═══ Kronos contribution helper ═══
+// Levert wat Kronos sandbox bijdraagt aan de gecombineerde view.
+// startBalance van Kronos (€1000) wordt apart bijgehouden zodat de PnL%
+// alleen tegen de hoofd-bot startBalance (€10k) wordt afgezet.
+function kronosContribution(){
+  if (!kServerState) return { free: 0, openValue: 0, unrealized: 0, total: 0, openCount: 0, startSeed: 0 };
+  const free = Number(kServerState.balance || 0);
+  const startSeed = Number(kServerState.startBalance || 10000);
+  // Prefer server-computed portfolioValue (uses live mark-to-market via Coinbase/Binance/Kronos chain).
+  // Vermijdt jitter bij refresh: client-side priceCache is op t=0 leeg → unrealized=0 → P&L spring later.
+  const serverPv = Number(kServerState.portfolioValue || 0);
+  let openValue = 0, unrealized = 0;
+  for (const p of (kServerPositions || [])){
+    const lp = kLivePrices[p.token];
+    const { unr } = kPnlForPos(p, lp);
+    openValue += Number(p.sizeUsd || 0);
+    unrealized += unr;
+  }
+  // Fallback naar client-calc als server pv om wat voor reden 0 is
+  const total = serverPv > 0 ? serverPv : (free + openValue + unrealized);
+  return {
+    free,
+    openValue,
+    unrealized: serverPv > 0 ? (serverPv - free - openValue) : unrealized,
+    total,
+    openCount: (kServerPositions || []).length,
+    startSeed
+  };
+}
+
+function updateBalance() {
+  // Camelot (Elliott) en Kronos delen dezelfde €10K pool. Combined balance =
+  // €10K seed + Camelot P&L + Kronos P&L. Kronos eigen €10K start telt NIET
+  // dubbel — alleen z'n delta t.o.v. seed wordt opgeteld.
+  const mainValue = calcPortfolioValue();
+  const kc = kronosContribution();
+  const kronosNetPnl = kc.total - kc.startSeed;
+  const displayedBalance = mainValue + kronosNetPnl;
+  // balance/PnL labels NIET door FX herwegen — startBalance is in EUR ingevoerd,
+  // dus moet het saldo ook in EUR vergelijkbaar blijven (€10k → €10.025 etc).
+  document.getElementById('balanceValue').textContent = '\u20AC' + (Number(displayedBalance)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('balanceLabel').textContent = kc.openCount > 0 ? 'Paper Balance (Camelot + Kronos)' : 'Paper Balance';
+}
+
+function updateSummary() {
+  const mainValue = calcPortfolioValue();
+  const kc = kronosContribution();
+  const kronosNetPnl = kc.total - kc.startSeed;
+  const displayedBalance = mainValue + kronosNetPnl;
+  // PnL% afgezet tegen €10k startBalance (één gedeelde pool)
+  const combinedPnl = displayedBalance - state.startBalance;
+  const pnlPct = ((combinedPnl / state.startBalance)) * 100;
+  const currency = '\u20AC';
+
+  // raw EUR display (geen FX — start/total/PnL moeten consistent zijn met startBalance €10k)
+  const _raw2 = (n) => (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('sumBalance').textContent = currency + _raw2(displayedBalance);
+
+  const pnlEl = document.getElementById('sumPnl');
+  // FIX: bij negatief P&L moet ook het bedrag een "-" krijgen — anders zag je
+  //   "€109.81 (-1.10%)" wat lijkt op winst (alleen de % toonde minus). Nu:
+  //   "-€109.81 (-1.10%)" zodat het bedrag direct zichtbaar het verlies toont.
+  const pnlSign    = combinedPnl >= 0 ? '+' : '-';
+  const pnlPctSign = pnlPct      >= 0 ? '+' : '-';
+  pnlEl.textContent = `${pnlSign}${currency}${_raw2(Math.abs(combinedPnl))} (${pnlPctSign}${Math.abs(pnlPct).toFixed(2)}%)`;
+  pnlEl.className = 'value ' + (combinedPnl >= 0 ? 'positive' : 'negative');
+
+  // Closed Trades / win-rate / best / worst — COMBINED Camelot (state.trades)
+  // + Kronos (kServerTrades, RECONCILE entries gefiltered). Beide bots delen
+  // één €10K pool, dus realized stats horen op één plek (zelfde aanpak als
+  // updateTradeLog regel ~2447).
+  const merlijnClosed = state.trades || [];
+  const kronosClosed  = (typeof kServerTrades !== 'undefined' ? (kServerTrades || []) : [])
+    .filter(t => t && t.token !== 'RECONCILE');
+  const allClosed = [...merlijnClosed, ...kronosClosed];
+  const wins = allClosed.filter(t => (t.pnl || 0) > 0).length;
+  const total = allClosed.length;
+  document.getElementById('sumWinRate').textContent = total > 0 ? `${((wins / total) * 100).toFixed(0)}% (${wins}/${total})` : '-';
+  document.getElementById('sumTrades').textContent = total;
+  document.getElementById('sumOpen').textContent = state.positions.length + kc.openCount;
+
+  if (total > 0) {
+    // FIX 2026-04 #15: scheid winst- en verlies-trades voor best/worst.
+    //   Voorheen forceerde sumWorst altijd "-" prefix → bij 1 winnende trade
+    //   werd de winst als "-€9.28" getoond. Nu: best uit winsten, worst uit
+    //   verliezen; "—" als de respectievelijke set leeg is.
+    const fmtPnl = (v) => `${v >= 0 ? '+' : '-'}${currency}${formatNum(Math.abs(v))}`;
+    const winners = allClosed.filter(t => (t.pnl || 0) > 0);
+    const losers  = allClosed.filter(t => (t.pnl || 0) < 0);
+    document.getElementById('sumBest').textContent  = winners.length ? fmtPnl(Math.max(...winners.map(t => t.pnl))) : '—';
+    document.getElementById('sumWorst').textContent = losers.length  ? fmtPnl(Math.min(...losers.map(t => t.pnl)))  : '—';
+  } else {
+    document.getElementById('sumBest').textContent = '-';
+    document.getElementById('sumWorst').textContent = '-';
+  }
+
+  const startDate = new Date(state.startDate);
+  // Startkapitaal werd door user als EUR ingevuld in settings; niet via FX herwegen.
+  const startRaw = (Number(state.startBalance) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('sumStartDate').textContent = startDate.toLocaleDateString('nl-BE', { day: '2-digit', month: 'short', year: 'numeric' }) + ' (\u20AC' + startRaw + ')';
+}
+
+function updatePositions() {
+  const container = document.getElementById('positionsContainer');
+  const kPos = (typeof kServerPositions !== 'undefined' ? kServerPositions : []) || [];
+  if (state.positions.length === 0 && kPos.length === 0) {
+    container.innerHTML = '<div class="empty-state">No open positions</div>';
+    return;
+  }
+
+  const currency = '\u20AC';
+  let html = `<div style="overflow-x:auto;"><table>
+    <thead><tr>
+      <th>Token</th><th>Side</th><th>Bedrag</th><th>Entry</th><th>Current</th><th>Target</th><th>Stop</th><th>P&L</th><th>Kosten</th><th>Stars</th><th>Status</th><th>Duur</th><th></th>
+    </tr></thead><tbody>`;
+
+  for (const pos of state.positions) {
+    const currentPrice = priceCache[pos.token] || pos.entryPrice;
+    // P&L inclusief geschatte exit spread + fee
+    const exitSpread = currentPrice * SPREAD_PCT / 2;
+    const adjExit = pos.side === 'LONG' ? currentPrice - exitSpread : currentPrice + exitSpread;
+    let grossPnl;
+    if (pos.side === 'LONG') {
+      grossPnl = (adjExit - pos.entryPrice) * pos.amount;
+    } else {
+      grossPnl = (pos.entryPrice - adjExit) * pos.amount;
+    }
+    const exitFee = Math.abs(adjExit * pos.amount) * TRADE_FEE;
+    const pnl = grossPnl - exitFee;
+    const pnlPct = (pnl / pos.sizeUsd) * 100;
+    const duration = formatDuration(Date.now() - pos.openTime);
+    const pnlClass = pnl >= 0 ? 'profit' : 'loss';
+    // Geschatte kosten: entry fee + exit fee + spreads
+    const estEntryFee = pos.sizeUsd * TRADE_FEE;
+    const estEntrySpread = pos.entryPrice * SPREAD_PCT / 2 * pos.amount;
+    const estExitSpread = currentPrice * SPREAD_PCT / 2 * pos.amount;
+    const estCosts = estEntryFee + exitFee + estEntrySpread + estExitSpread;
+
+    // FIX 2026-04 #9: per-positie bron-detectie. /api/paper-state bevat zowel
+    //   Camelot 4H (Elliott Wave) als Kronos signalen — onderscheid via meta.source / bot.
+    //   Kronos badge gebruikt oude blauwe stijl ("K"); Elliott badge toont "EW".
+    const isKronosSrc = (pos.meta && pos.meta.source === 'kronos') || pos.bot === 'paper_kronos' || pos._src === 'K';
+    const isEWSrc = (pos.meta && pos.meta.source === 'elliott') || pos.bot === 'camelot' || pos._src === 'EW';
+    const srcBadgeOpen = isKronosSrc
+      ? '<span title="Kronos AI signal" style="display:inline-block; padding:1px 5px; margin-right:4px; border-radius:3px; background:#1e3a5f; color:#7cc6ff; font-size:9px; font-weight:700; vertical-align:middle;">K</span>'
+      : isEWSrc
+      ? '<span title="Elliott Wave signal (Camelot 4H)" style="display:inline-block; padding:1px 5px; margin-right:4px; border-radius:3px; background:#012D4C; color:#fff; font-size:9px; font-weight:700; vertical-align:middle;">EW</span>'
+      : '';
+    html += `<tr class="data-row">
+      <td>${srcBadgeOpen}<span class="token-icon ${getIconClass(pos.token)}">${pos.token[0]}</span> ${pos.token}</td>
+      <td><span class="badge ${pos.side === 'LONG' ? 'badge-long' : 'badge-short'}">${pos.side}</span></td>
+      <td style="font-weight:600;">${currency}${formatNum(pos.sizeUsd)}</td>
+      <td>${formatPrice(pos.entryPrice)}</td>
+      <td>${formatPrice(currentPrice)}</td>
+      <td>${formatPrice(pos.target)}</td>
+      <td>${formatPrice(pos.stop)}</td>
+      <td class="${pnlClass}">${pnl >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(pnl))} (${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%)</td>
+      <td style="font-size:11px; color:#888;" title="Entry fee: ${currency}${estEntryFee.toFixed(2)} + Exit fee: ${currency}${exitFee.toFixed(2)} + Spread: ${currency}${(estEntrySpread + estExitSpread).toFixed(2)}">${currency}${estCosts.toFixed(2)}</td>
+      <td class="stars">${'\u2605'.repeat(pos.stars)}</td>
+      <td style="font-size:10px;">${pos.breakeven ? '<span class="profit">BE</span>' : ''} ${pos.partialClosed ? '<span class="profit">50%</span>' : ''} ${pos.breakeven && pos.stop !== pos.initialStop ? '<span class="profit">Trail</span>' : ''}</td>
+      <td>${duration}</td>
+      <td><button class="btn btn-close-pos" onclick="manualClose('${pos.id}')">Close</button></td>
+    </tr>`;
+  }
+
+  // Append Kronos open positions (auto-managed sandbox; no close button)
+  for (const kp of kPos) {
+    const lp = (typeof kLivePrices !== 'undefined' ? kLivePrices[kp.token] : undefined);
+    const { live, ent, unr, uPct } = kPnlForPos(kp, lp);
+    const side = (kp.side || 'LONG').toUpperCase();
+    const sizeUsd = Number(kp.sizeUsd || 0);
+    const openTs = kp.openTime || kp.openedAt || kp.entryTime;
+    const duration = openTs ? formatDuration(Date.now() - new Date(openTs).getTime()) : '-';
+    const pnlClass = unr >= 0 ? 'profit' : 'loss';
+    const tgt = kp.target != null ? formatPrice(kp.target) : '-';
+    const stp = kp.stop != null ? formatPrice(kp.stop) : '-';
+    const stars = Number(kp.stars || 0);
+    // Effectieve kosten: entry fee + geschatte exit fee + entry+exit spread
+    const kAmount = Number(kp.qty || kp.amount || (ent > 0 ? sizeUsd / ent : 0));
+    const kEntryFee = sizeUsd * TRADE_FEE;
+    const kExitSpread = (live || ent) * SPREAD_PCT / 2 * kAmount;
+    const kEntrySpread = ent * SPREAD_PCT / 2 * kAmount;
+    const kAdjExit = side === 'LONG' ? (live - kExitSpread/Math.max(kAmount,1e-9)) : (live + kExitSpread/Math.max(kAmount,1e-9));
+    const kExitFee = Math.abs(kAdjExit * kAmount) * TRADE_FEE;
+    const kCosts = kEntryFee + kExitFee + kEntrySpread + kExitSpread;
+    // FIX 2026-04 #9: Kronos badge oude blauwe stijl ("K"), consistent met badge in Camelot-tabel
+    const kBadge = '<span title="Kronos AI signal" style="display:inline-block; padding:1px 5px; margin-right:4px; border-radius:3px; background:#1e3a5f; color:#7cc6ff; font-size:9px; font-weight:700; vertical-align:middle;">K</span>';
+    html += `<tr class="data-row" style="background:rgba(120,180,255,0.04);">
+      <td>${kBadge}<span class="token-icon ${getIconClass(kp.token)}">${kp.token[0]}</span> ${kp.token}</td>
+      <td><span class="badge ${side === 'LONG' ? 'badge-long' : 'badge-short'}">${side}</span></td>
+      <td style="font-weight:600;">${currency}${formatNum(sizeUsd)}</td>
+      <td>${formatPrice(ent)}</td>
+      <td>${formatPrice(live)}</td>
+      <td>${tgt}</td>
+      <td>${stp}</td>
+      <td class="${pnlClass}">${unr >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(unr))} (${uPct >= 0 ? '+' : ''}${uPct.toFixed(1)}%)</td>
+      <td style="font-size:11px;color:#888;" title="Entry fee: ${currency}${kEntryFee.toFixed(2)} + Exit fee: ${currency}${kExitFee.toFixed(2)} + Spread: ${currency}${(kEntrySpread + kExitSpread).toFixed(2)}">${currency}${kCosts.toFixed(2)}</td>
+      <td class="stars">${stars > 0 ? '\u2605'.repeat(stars) : '-'}</td>
+      <td style="font-size:10px;color:#7cc6ff;">auto</td>
+      <td>${duration}</td>
+      <td></td>
+    </tr>`;
+  }
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function updateSignalMonitor() {
+  const grid = document.getElementById('signalGrid');
+  let html = '';
+
+  for (const token of TOKENS) {
+    const signals = signalCache[token.name] || [];
+    const kronos = kronosCache[token.name] || {};
+    const candles = candleCache[token.name] || [];
+    const currentPrice = priceCache[token.name];
+    const latest = signals.length > 0 ? signals[signals.length - 1] : null;
+
+    let rsiVal = '-';
+    let macdStatus = '-';
+    let macdClass = '';
+
+    if (candles.length > 26) {
+      const closes = candles.map(c => c.close);
+      const rsiArr = calcRSI(closes);
+      rsiVal = rsiArr[rsiArr.length - 1].toFixed(1);
+
+      const ema12 = calcEMA(closes, 12);
+      const ema26 = calcEMA(closes, 26);
+      const mLine = ema12[ema12.length - 1] - ema26[ema26.length - 1];
+      const mSignal = calcEMA(ema12.map((v, j) => v - ema26[j]), 9);
+      const hist = mLine - mSignal[mSignal.length - 1];
+      macdStatus = hist > 0 ? 'Bullish' : 'Bearish';
+      macdClass = hist > 0 ? 'profit' : 'loss';
+    }
+
+    const rsiNum = parseFloat(rsiVal);
+    let rsiClass = '';
+    if (rsiNum >= 70) rsiClass = 'loss';
+    else if (rsiNum <= 30) rsiClass = 'profit';
+
+    const timeSince = latest ? formatDuration(Date.now() - latest.time) : '-';
+    const kronosDir = kronos.offline ? 'Offline' : (kronos.direction || kronos.forecast ? `${kronos.direction || ''} ${kronos.pct ? (kronos.pct > 0 ? '+' : '') + kronos.pct.toFixed(1) + '%' : ''}` : 'N/A');
+
+    let signalBadge = '<span class="badge badge-hold">HOLD</span>';
+    if (latest) {
+      if (latest.type === 'BUY') signalBadge = `<span class="badge badge-buy">BUY ${'\u2605'.repeat(latest.stars)}</span>`;
+      else signalBadge = `<span class="badge badge-sell">SELL ${'\u2605'.repeat(latest.stars)}</span>`;
+    }
+
+    html += `<div class="signal-card">
+      <div class="signal-card-header">
+        <div class="signal-card-token">
+          <span class="token-icon ${token.iconClass}">${token.icon}</span>
+          ${token.name}
+        </div>
+        ${signalBadge}
+      </div>
+      <div class="signal-detail"><span class="signal-detail-label">Price</span><span class="signal-detail-value">${currentPrice ? formatPrice(currentPrice) : '-'}</span></div>
+      <div class="signal-detail"><span class="signal-detail-label">Time since signal</span><span class="signal-detail-value">${timeSince}</span></div>
+      <div class="signal-detail"><span class="signal-detail-label">RSI (14)</span><span class="signal-detail-value ${rsiClass}">${rsiVal}</span></div>
+      <div class="signal-detail"><span class="signal-detail-label">MACD</span><span class="signal-detail-value ${macdClass}">${macdStatus}</span></div>
+      <div class="signal-detail"><span class="signal-detail-label">Kronos AI</span><span class="signal-detail-value">${kronosDir}</span></div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function updateTradeLog() {
+  const container = document.getElementById('tradeLogContainer');
+  // ── Merge Camelot (Elliott) + Kronos (signaal-bot) gesloten trades ──
+  // Beide bots delen één €10K pool, dus realized P&L hoort op één plek.
+  // Kronos trades krijgen _src='K' tag → visueel label naast de token.
+  const merlijnTrades = (state.trades || []).map(t => ({ ...t, _src: 'M' }));
+  const kronosTrades = (typeof kServerTrades !== 'undefined' ? (kServerTrades || []) : [])
+    .filter(t => t && t.token !== 'RECONCILE')   // skip auto-reconcile entries
+    .map(t => ({ ...t, _src: 'K' }));
+  const allTrades = [...merlijnTrades, ...kronosTrades];
+  if (allTrades.length === 0) {
+    container.innerHTML = '<div class="empty-state">No completed trades yet</div>';
+    return;
+  }
+
+  const currency = '\u20AC';
+  const sorted = [...allTrades].sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0));
+
+  // Bereken totalen (combined)
+  const totalPnl = allTrades.reduce((s, t) => s + (t.pnl || 0), 0);
+  const wins = allTrades.filter(t => (t.pnl || 0) >= 0);
+  const losses = allTrades.filter(t => (t.pnl || 0) < 0);
+  const winRate = allTrades.length > 0 ? (wins.length / allTrades.length * 100).toFixed(0) : 0;
+  // FIX 2026-04 #16: scheid winners/losers — anders worden best en worst dezelfde
+  //   trade bij 1 winnende trade (toonde "+€9.28" en "-€9.28" voor één trade).
+  const winnerTrades = allTrades.filter(t => (t.pnl || 0) > 0);
+  const loserTrades  = allTrades.filter(t => (t.pnl || 0) < 0);
+  const bestTrade  = winnerTrades.length > 0 ? winnerTrades.reduce((a, b) => a.pnl > b.pnl ? a : b) : null;
+  const worstTrade = loserTrades.length  > 0 ? loserTrades.reduce((a, b)  => a.pnl < b.pnl ? a : b) : null;
+
+  let html = `
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin-bottom:16px; padding:12px; background:rgba(0,32,53,0.03); border-radius:10px;">
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Totaal P&L</div>
+      <div style="font-size:18px; font-weight:700; color:${totalPnl >= 0 ? '#2e8b57' : '#c0392b'};">${totalPnl >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(totalPnl))}</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Trades</div>
+      <div style="font-size:18px; font-weight:700; color:#002035;">${allTrades.length}</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Win Rate</div>
+      <div style="font-size:18px; font-weight:700; color:${parseInt(winRate) >= 50 ? '#2e8b57' : '#c0392b'};">${winRate}%</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Winst / Verlies</div>
+      <div style="font-size:14px; font-weight:700;"><span style="color:#2e8b57;">${wins.length}W</span> / <span style="color:#c0392b;">${losses.length}L</span></div>
+    </div>
+  </div>`;
+
+  // Totaal kosten (combined: Camelot fees+spreads + Kronos fees+slippage+funding)
+  const totalCosts = allTrades.reduce((s, t) => {
+    // Kronos trades hebben fills.totalCosts of fills.{exitFee,exitSlippage,funding}+entryFee
+    if (t._src === 'K') {
+      if (t.fills?.totalCosts != null) return s + t.fills.totalCosts;
+      const k = (t.fills?.entryFee || t.entryFee || 0)
+              + (t.fills?.exitFee || 0)
+              + (t.fills?.slippageCost || 0)
+              + (t.fills?.exitSlippage || 0)
+              + (t.fills?.funding || 0);
+      return s + k;
+    }
+    if (t.totalCosts) return s + t.totalCosts;
+    if (t.sizeUsd > 0) {
+      const amt = t.amount || (t.qty) || t.sizeUsd / t.entryPrice;
+      const ef = t.sizeUsd * TRADE_FEE;
+      const xf = Math.abs(t.exitPrice * amt) * TRADE_FEE;
+      const es = t.entryPrice * SPREAD_PCT / 2 * amt;
+      const xs = t.exitPrice * SPREAD_PCT / 2 * amt;
+      return s + ef + xf + es + xs;
+    }
+    return s;
+  }, 0);
+
+  html += `
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; margin-bottom:16px; padding:12px; background:rgba(0,32,53,0.03); border-radius:10px;">
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Totaal Kosten</div>
+      <div style="font-size:14px; font-weight:700; color:#c0392b;">${currency}${formatNum(totalCosts)}</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Best Trade</div>
+      <div style="font-size:14px; font-weight:700; color:#2e8b57;">${bestTrade ? '+' + currency + formatNum(bestTrade.pnl) : '—'}</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Worst Trade</div>
+      <div style="font-size:14px; font-weight:700; color:#c0392b;">${worstTrade ? '-' + currency + formatNum(Math.abs(worstTrade.pnl)) : '—'}</div>
+    </div>
+  </div>`;
+
+  // ── Totalen per token (gerealiseerd) ──
+  // Groepeert partials + full-close onder één rij zodat je bv. bij SOL
+  // (Target1 50% + Trailing Stop 50%) direct de totale winst ziet op de
+  // originele positie-grootte i.p.v. twee losse percentages te moeten optellen.
+  const byToken = {};
+  for (const t of allTrades) {
+    if (!byToken[t.token]) byToken[t.token] = { pnl: 0, sizeUsd: 0, count: 0, wins: 0 };
+    byToken[t.token].pnl     += (t.pnl || 0);
+    byToken[t.token].sizeUsd += (t.sizeUsd || 0);
+    byToken[t.token].count   += 1;
+    if ((t.pnl || 0) >= 0) byToken[t.token].wins += 1;
+  }
+  const tokensSorted = Object.entries(byToken).sort((a, b) => b[1].pnl - a[1].pnl);
+  if (tokensSorted.length > 0) {
+    html += `
+    <div style="margin-bottom:16px; padding:12px; background:rgba(0,32,53,0.03); border-radius:10px;">
+      <div style="font-size:10px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px; margin-bottom:8px;">Totalen per token (gerealiseerd)</div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>Token</th><th>Trades</th><th>Totaal bedrag</th><th>Totaal P&L</th><th>%</th>
+        </tr></thead><tbody>`;
+    for (const [tk, agg] of tokensSorted) {
+      const pct = agg.sizeUsd > 0 ? (agg.pnl / agg.sizeUsd * 100) : 0;
+      const cls = agg.pnl >= 0 ? 'profit' : 'loss';
+      html += `<tr class="data-row">
+        <td><strong>${tk}</strong></td>
+        <td>${agg.count} (${agg.wins}W/${agg.count - agg.wins}L)</td>
+        <td>${currency}${formatNum(agg.sizeUsd)}</td>
+        <td class="${cls}" style="font-weight:700;">${agg.pnl >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(agg.pnl))}</td>
+        <td class="${cls}" style="font-weight:700;">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</td>
+      </tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+  }
+
+  // ── Maandelijks resultaat (gerealiseerd, compounded) ──
+  // Groepeert trades op year-month van closeTime. Maand-% wordt berekend over
+  // de equity aan het begin van die maand (startBalance + cumul P&L van eerdere
+  // maanden). Zo compoundt winst/verlies realistisch, net zoals je echte
+  // account-groei zou lezen.
+  const chronoTrades = [...allTrades].sort((a, b) => (a.closeTime || 0) - (b.closeTime || 0));
+  const startEquity = state.startBalance || 10000;
+  const byMonth = {};   // 'YYYY-MM' → { pnl, count, wins, losses, equityAtStart, label }
+  let runningEquity = startEquity;
+  for (const t of chronoTrades) {
+    const d = new Date(t.closeTime);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!byMonth[key]) {
+      const monthNames = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+      byMonth[key] = {
+        pnl: 0, count: 0, wins: 0, losses: 0,
+        equityAtStart: runningEquity,
+        label: `${monthNames[d.getMonth()]} ${d.getFullYear()}`
+      };
+    }
+    byMonth[key].pnl   += t.pnl;
+    byMonth[key].count += 1;
+    if (t.pnl >= 0) byMonth[key].wins += 1;
+    else byMonth[key].losses += 1;
+    runningEquity += t.pnl;
+  }
+  const monthsSorted = Object.entries(byMonth).sort((a, b) => b[0].localeCompare(a[0]));   // newest first
+  if (monthsSorted.length > 0) {
+    html += `
+    <div style="margin-bottom:16px; padding:12px; background:rgba(0,32,53,0.03); border-radius:10px;">
+      <div style="font-size:10px; color:#666; text-transform:uppercase; font-weight:600; letter-spacing:0.5px; margin-bottom:8px;">Maandelijks resultaat (compounded)</div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>Maand</th><th>Trades (W/L)</th><th>Start equity</th><th>P&L</th><th>Maand %</th><th>Eind equity</th>
+        </tr></thead><tbody>`;
+    for (const [, m] of monthsSorted) {
+      const pct = m.equityAtStart > 0 ? (m.pnl / m.equityAtStart * 100) : 0;
+      const cls = m.pnl >= 0 ? 'profit' : 'loss';
+      const endEquity = m.equityAtStart + m.pnl;
+      html += `<tr class="data-row">
+        <td><strong>${m.label}</strong></td>
+        <td>${m.count} (${m.wins}W/${m.losses}L)</td>
+        <td style="font-size:11px; color:#666;">${currency}${formatNum(m.equityAtStart)}</td>
+        <td class="${cls}" style="font-weight:700;">${m.pnl >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(m.pnl))}</td>
+        <td class="${cls}" style="font-weight:700;">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</td>
+        <td style="font-size:11px; color:#002035; font-weight:600;">${currency}${formatNum(endEquity)}</td>
+      </tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+  }
+
+  html += `<div style="overflow-x:auto;"><table>
+    <thead><tr>
+      <th>Datum</th><th>Token</th><th>Side</th><th>Bedrag</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Kosten</th><th>Duur</th><th>Reden</th>
+    </tr></thead><tbody>`;
+
+  for (const t of sorted) {
+    const pnlClass = t.pnl >= 0 ? 'profit' : 'loss';
+    const durationMs = t.closeTime - t.openTime;
+    const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+    const durationMins = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+    const durationStr = durationHours > 24
+      ? Math.floor(durationHours / 24) + 'd ' + (durationHours % 24) + 'h'
+      : durationHours + 'h ' + durationMins + 'm';
+    // Retroactieve kostenberekening voor trades zonder totalCosts
+    let costs = t.totalCosts || 0;
+    let cEntryFee = t.entryFee || 0;
+    let cExitFee = t.exitFee || 0;
+    if (t._src === 'K') {
+      // Kronos trade: fees + slippage + funding uit fills-object
+      cEntryFee = t.fills?.entryFee || 0;
+      cExitFee = t.fills?.exitFee || 0;
+      const slip = (t.fills?.slippageCost || 0) + (t.fills?.exitSlippage || 0);
+      const fund = t.fills?.funding || 0;
+      costs = t.fills?.totalCosts != null ? t.fills.totalCosts : (cEntryFee + cExitFee + slip + fund);
+    } else if (!t.totalCosts && t.sizeUsd > 0) {
+      cEntryFee = t.sizeUsd * TRADE_FEE;
+      cExitFee = Math.abs(t.exitPrice * (t.amount || t.sizeUsd / t.entryPrice)) * TRADE_FEE;
+      const eSpread = t.entryPrice * SPREAD_PCT / 2 * (t.amount || t.sizeUsd / t.entryPrice);
+      const xSpread = t.exitPrice * SPREAD_PCT / 2 * (t.amount || t.sizeUsd / t.entryPrice);
+      costs = cEntryFee + cExitFee + eSpread + xSpread;
+    }
+    const costBreakdown = `Entry fee: ${currency}${cEntryFee.toFixed(2)}\nExit fee: ${currency}${cExitFee.toFixed(2)}\nSpread: ${currency}${(costs - cEntryFee - cExitFee).toFixed(2)}`;
+
+    // ── Trail / MFE details voor Reden-kolom ──
+    // Toont origineel-vs-getrailed stop, peak favorable excursion, targets,
+    // breakeven-status. Best zichtbaar voor 'Trailing Stop' en 'Stop-Loss'
+    // trades — zo zie je hoe ver de trail meeliep of hoeveel winst je op tafel
+    // liet door vroege stop.
+    let reasonCell = `<td style="font-size:11px;">${t.reason}</td>`;
+    if (t.trail) {
+      const tr = t.trail;
+      const parts = [];
+      if (tr.initialStop != null && tr.finalStop != null && Math.abs(tr.finalStop - tr.initialStop) > 1e-9) {
+        const dir = t.side === 'LONG' ? (tr.finalStop > tr.initialStop ? '\u2197' : '\u2198')
+                                      : (tr.finalStop < tr.initialStop ? '\u2197' : '\u2198');
+        parts.push(`SL ${formatPrice(tr.initialStop)} ${dir} ${formatPrice(tr.finalStop)}`);
+      } else if (tr.initialStop != null) {
+        parts.push(`SL ${formatPrice(tr.initialStop)}`);
+      }
+      if (tr.peakPrice != null && tr.peakPct != null) {
+        parts.push(`peak ${formatPrice(tr.peakPrice)} (${tr.peakPct >= 0 ? '+' : ''}${tr.peakPct.toFixed(1)}%)`);
+      }
+      if (tr.breakeven) parts.push('BE\u2713');
+      const tooltip = [
+        `Initial stop: ${tr.initialStop != null ? formatPrice(tr.initialStop) : '-'}`,
+        `Final stop:   ${tr.finalStop   != null ? formatPrice(tr.finalStop)   : '-'}`,
+        `Target 1:     ${tr.target1     != null ? formatPrice(tr.target1)     : '-'}`,
+        `Target:       ${tr.target      != null ? formatPrice(tr.target)      : '-'}`,
+        `Peak price:   ${tr.peakPrice   != null ? formatPrice(tr.peakPrice)   : '-'}  (${tr.peakPct >= 0 ? '+' : ''}${tr.peakPct.toFixed(2)}% MFE)`,
+        `Breakeven:    ${tr.breakeven ? '\u2713 geactiveerd' : '\u2717 niet geactiveerd'}`,
+        `ATR:          ${tr.atr != null ? tr.atr.toFixed(6) : '-'}`
+      ].join('\n');
+      const sub = parts.length ? `<div style="font-size:10px; color:#6a8a9a; margin-top:2px; line-height:1.35;">${parts.join(' \u00b7 ')}</div>` : '';
+      reasonCell = `<td style="font-size:11px; cursor:help;" title="${tooltip}">${t.reason}${sub}</td>`;
+    }
+
+    // FIX 2026-04 #9: per-trade bron-detectie consistent met open posities.
+    // Kronos = blauwe "K", Elliott Wave = navy "EW".
+    const tIsKronos = t._src === 'K' || (t.meta && t.meta.source === 'kronos') || t.bot === 'paper_kronos';
+    const tIsEW = t._src === 'EW' || (t.meta && t.meta.source === 'elliott') || t.bot === 'camelot';
+    const srcBadge = tIsKronos
+      ? '<span title="Kronos AI signal" style="display:inline-block; padding:1px 5px; margin-right:4px; border-radius:3px; background:#1e3a5f; color:#7cc6ff; font-size:9px; font-weight:700; vertical-align:middle;">K</span>'
+      : tIsEW
+      ? '<span title="Elliott Wave signal (Camelot 4H)" style="display:inline-block; padding:1px 5px; margin-right:4px; border-radius:3px; background:#012D4C; color:#fff; font-size:9px; font-weight:700; vertical-align:middle;">EW</span>'
+      : '';
+    html += `<tr class="data-row">
+      <td style="font-size:11px;">${formatDate(t.closeTime)}</td>
+      <td>${srcBadge}<strong>${t.token}</strong> ${'\u2605'.repeat(t.stars || 0)}</td>
+      <td><span class="badge ${t.side === 'LONG' ? 'badge-long' : 'badge-short'}">${t.side}</span></td>
+      <td style="font-weight:600;">${currency}${formatNum(t.sizeUsd)}</td>
+      <td>${formatPrice(t.entryPrice)}</td>
+      <td>${formatPrice(t.exitPrice)}</td>
+      <td class="${pnlClass}" style="font-weight:700;">${t.pnl >= 0 ? '+' : ''}${currency}${formatNum(Math.abs(t.pnl))} (${t.pnlPct >= 0 ? '+' : ''}${t.pnlPct.toFixed(1)}%)</td>
+      <td style="font-size:11px; color:#888; cursor:help;" title="${costBreakdown}">${currency}${costs.toFixed(2)}</td>
+      <td style="font-size:11px; color:#666;">${durationStr}</td>
+      ${reasonCell}
+    </tr>`;
+  }
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function drawEquityCurve() {
+  const canvas = document.getElementById('equityCanvas');
+  if (!canvas) return;   // standalone "Equity Curve (live)" card verwijderd; no-op.
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+  const w = rect.width;
+  const h = rect.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const data = state.equityCurve;
+  if (data.length < 2) {
+    ctx.fillStyle = '#4a6a80';
+    ctx.font = '13px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('Not enough data yet', w / 2, h / 2);
+    return;
+  }
+
+  const values = data.map(d => d.value);
+  const minVal = Math.min(...values) * 0.998;
+  const maxVal = Math.max(...values) * 1.002;
+  const range = maxVal - minVal || 1;
+  const pad = { top: 20, right: 20, bottom: 30, left: 60 };
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0,32,53,0.06)';
+  ctx.lineWidth = 1;
+  const gridLines = 4;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = pad.top + (i / gridLines) * (h - pad.top - pad.bottom);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+
+    const val = maxVal - (i / gridLines) * range;
+    ctx.fillStyle = '#4a6a80';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'right';
+    ctx.fillText('\u20AC' + val.toFixed(0), pad.left - 6, y + 4);
+  }
+
+  // Line
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+
+  const endValue = values[values.length - 1];
+  const startValue = values[0];
+  const isUp = endValue >= startValue;
+  const lineColor = isUp ? '#2e8b57' : '#FC4C4C';
+
+  ctx.beginPath();
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+
+  for (let i = 0; i < data.length; i++) {
+    const x = pad.left + (i / (data.length - 1)) * chartW;
+    const y = pad.top + (1 - (values[i] - minVal) / range) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Fill
+  ctx.lineTo(pad.left + chartW, pad.top + chartH);
+  ctx.lineTo(pad.left, pad.top + chartH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+  grad.addColorStop(0, isUp ? 'rgba(46,139,87,0.15)' : 'rgba(252,76,76,0.15)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Current value label
+  const lastX = pad.left + chartW;
+  const lastY = pad.top + (1 - (endValue - minVal) / range) * chartH;
+  ctx.fillStyle = lineColor;
+  ctx.font = 'bold 11px Inter';
+  ctx.textAlign = 'right';
+  ctx.fillText('\u20AC' + endValue.toFixed(2), lastX - 4, lastY - 8);
+}
+
+// =============================================
+// USER ACTIONS
+// =============================================
+function switchMode(mode) {
+  // Live mode disabled for public dashboard
+  state.mode = 'paper';
+  saveState();
+  updateUI();
+}
+
+function toggleAuto() {
+  state.settings.autoTrade = !state.settings.autoTrade;
+  saveState();
+  const el = document.getElementById('toggleAutoTrade');
+  el.classList.toggle('active', state.settings.autoTrade);
+  document.getElementById('autoTradeLabel').textContent = state.settings.autoTrade ? 'Enabled' : 'Disabled';
+}
+
+function updateSetting(key, value) {
+  if (key === 'startBalance') {
+    state.startBalance = parseFloat(value) || 1000;
+  } else {
+    state.settings[key] = parseFloat(value);
+  }
+  saveState();
+  updateUI();
+}
+
+// Track in-flight closes zodat dubbel-klik de UI niet vies trekt
+const _pendingCloses = new Set();
+
+async function manualClose(posId) {
+  const pos = state.positions.find(p => p.id === posId);
+  if (!pos) return;
+
+  // Confirmation — extra safety net (geen "oeps geklikt").
+  const tokenLabel = pos.token || 'positie';
+  const sideLabel = pos.side || '';
+  if (!confirm(`Sluit ${sideLabel} ${tokenLabel} nu manueel?\n\nDit wordt onmiddellijk geboekt op de server (geen client-only flicker meer).`)) {
+    return;
+  }
+
+  // ── ARCHITECTUUR (2026-04-23): server is single source of truth ──
+  // Eerder deed deze functie een client-side close in localStorage. Dat had
+  // twee bugs:
+  //   (1) na 30s syncServerState() kwam de positie terug (server wist niks)
+  //   (2) trade record had geen `bot` field → Kronos posities kregen ten
+  //       onrechte het EW badge in Closed Trades
+  // Nu: POST naar /api/paper-engine?action=close-position. Server bepaalt
+  // bot uit position.bot en routeert naar de juiste closePositionByForce
+  // (Camelot of Kronos). Daarna refreshen we state direct van server.
+  if (_pendingCloses.has(posId)) return;
+  _pendingCloses.add(posId);
+
+  // Visuele feedback — knop disablen + label flippen
+  const btnSelector = `button[onclick="manualClose('${posId}')"]`;
+  const btn = document.querySelector(btnSelector);
+  let originalLabel = '';
+  if (btn) {
+    originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Closing\u2026';
+    btn.style.opacity = '0.6';
+  }
+
+  try {
+    const url = `/api/paper-engine?action=close-position&id=${encodeURIComponent(posId)}&reason=${encodeURIComponent('Manual')}`;
+    const resp = await fetch(url, { method: 'POST', cache: 'no-store' });
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || !data.ok) {
+      const err = (data && data.error) ? data.error : `HTTP ${resp.status}`;
+      showToast(`Close failed: ${err}`, 'sell');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalLabel || 'Close';
+        btn.style.opacity = '';
+      }
+      return;
+    }
+
+    // Optimistische lokale removal — anders blijft de positie tot syncServerState
+    // (15-30s) zichtbaar. We verwijderen 'm direct uit state.positions; de
+    // volgende sync overschrijft toch met server-truth.
+    const idx = state.positions.findIndex(p => p.id === posId);
+    if (idx !== -1) state.positions.splice(idx, 1);
+
+    const tradeBot = (data.trade && data.trade.bot) || data.bot || 'paper_4h';
+    const botLabel = tradeBot === 'paper_kronos' ? 'Kronos' : 'Camelot';
+    const pnlVal = data.trade && typeof data.trade.pnl === 'number' ? data.trade.pnl : null;
+    const pnlStr = pnlVal != null
+      ? (pnlVal >= 0 ? `+\u20AC${pnlVal.toFixed(2)}` : `-\u20AC${Math.abs(pnlVal).toFixed(2)}`)
+      : '';
+    showToast(`${botLabel} ${pos.side || ''} ${tokenLabel} closed ${pnlStr}`, pnlVal >= 0 ? 'buy' : 'sell');
+
+    updateUI();
+
+    // Refresh state direct van server zodat closed-trade-list + balance
+    // synced zijn. Promise.all parallel — Camelot + Kronos beide.
+    try {
+      await Promise.all([
+        typeof syncServerState === 'function' ? syncServerState() : null,
+        typeof syncKronosState === 'function' ? syncKronosState() : null,
+      ].filter(Boolean));
+      updateUI();
+    } catch (e) {
+      console.warn('[manualClose] post-close sync failed:', e.message);
+    }
+  } catch (e) {
+    showToast(`Close error: ${e.message}`, 'sell');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalLabel || 'Close';
+      btn.style.opacity = '';
+    }
+  } finally {
+    _pendingCloses.delete(posId);
+  }
+}
+
+function resetPaperTrading() {
+  if (!confirm('Reset all paper trading data? This will clear all positions, trades, and reset your balance.')) return;
+  const newState = defaultState();
+  newState.mode = state.mode;
+  newState.startBalance = state.startBalance;
+  newState.balance = state.startBalance;
+  newState.settings = { ...state.settings };
+  newState.startDate = Date.now();
+  newState.equityCurve = [{ time: Date.now(), value: state.startBalance }];
+  Object.assign(state, newState);
+  saveState();
+  updateUI();
+  showToast('Paper trading reset', 'info');
+}
+
+function exportTrades() {
+  if (state.trades.length === 0) {
+    showToast('No trades to export', 'info');
+    return;
+  }
+  const header = 'Token,Side,Entry Price,Exit Price,Amount,P&L,P&L %,Stars,Opened,Closed,Reason\n';
+  const rows = state.trades.map(t =>
+    `${t.token},${t.side},${t.entryPrice},${t.exitPrice},${t.amount},${t.pnl.toFixed(4)},${t.pnlPct.toFixed(2)},${t.stars},${new Date(t.openTime).toISOString()},${new Date(t.closeTime).toISOString()},${t.reason}`
+  ).join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `merlijn_trades_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Trades exported to CSV', 'info');
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+// FX-aware formatters — multiply by window._fxUsdtToEur (1.0 fallback) zodat
+// USDT-waarden correct als EUR worden weergegeven na de Binance-migratie.
+function _fxApply(n) {
+  const rate = (typeof window !== 'undefined' && window._fxUsdtToEur) ? window._fxUsdtToEur : 1;
+  return (Number(n) || 0) * rate;
+}
+function formatNum(n) {
+  return _fxApply(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatPrice(p) {
+  const v = _fxApply(p);
+  if (v >= 1) return '\u20AC' + v.toFixed(4);
+  if (v >= 0.01) return '\u20AC' + v.toFixed(5);
+  return '\u20AC' + v.toFixed(6);
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDuration(ms) {
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return mins + 'm';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ' + (mins % 60) + 'm';
+  const days = Math.floor(hrs / 24);
+  return days + 'd ' + (hrs % 24) + 'h';
+}
+
+function getIconClass(token) {
+  return { BTC: 'icon-btc', ETH: 'icon-eth', SOL: 'icon-sol', BNB: 'icon-bnb', HBAR: 'icon-hbar', XRP: 'icon-xrp', AVAX: 'icon-avax', LINK: 'icon-link', ADA: 'icon-ada', DOT: 'icon-dot', POL: 'icon-pol', DOGE: 'icon-doge', SUI: 'icon-sui', TRX: 'icon-trx', XLM: 'icon-xlm' }[token] || 'icon-hbar';
+}
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
+}
+
+// =============================================
+// INITIALIZATION
+// =============================================
+function initUI() {
+  // Restore settings to UI
+  document.getElementById('settingCapital').value = state.startBalance;
+  document.getElementById('settingPosSize').value = state.settings.positionSizePct;
+  document.getElementById('settingMaxPos').value = state.settings.maxPositions;
+
+  const autoToggle = document.getElementById('toggleAutoTrade');
+  autoToggle.classList.toggle('active', state.settings.autoTrade);
+  document.getElementById('autoTradeLabel').textContent = state.settings.autoTrade ? 'Enabled' : 'Disabled';
+
+  // Restore mode
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === state.mode);
+  });
+  document.getElementById('liveBanner').classList.toggle('visible', state.mode === 'live');
+
+  // initUI roept updateUI niet meer aan om "€0 P&L flash" te vermijden tijdens
+  // de async server+kronos fetches. init() doet één render zodra beide binnen zijn.
+}
+
+// Snelle prijsupdate (alleen prijzen + P&L, geen signaalberekening)
+// ═══ Binance WebSocket — real-time USDT prijzen ═══
+// Switched van Bitvavo (EUR) naar Binance (USDT) voor consistentie met
+// backend-trades (paper-engine VENUE=binance) + Kronos forecasts.
+// Display blijft "$"/"€" agnostisch — backend rekent in USDT, frontend toont
+// hetzelfde getal. Latere conversie naar EUR via FX-rate is mogelijk.
+const WS_MARKETS = {
+  BTC: 'BTCUSDT', ETH: 'ETHUSDT', SOL: 'SOLUSDT', BNB: 'BNBUSDT', HBAR: 'HBARUSDT', XRP: 'XRPUSDT',
+  AVAX: 'AVAXUSDT', LINK: 'LINKUSDT', ADA: 'ADAUSDT', DOT: 'DOTUSDT', POL: 'POLUSDT', DOGE: 'DOGEUSDT',
+};
+let ws = null;
+let wsReconnectTimer = null;
+let lastWsUpdate = 0;
+
+function connectWebSocket() {
+  const streams = Object.values(WS_MARKETS).map(s => s.toLowerCase() + '@miniTicker').join('/');
+  const url = 'wss://stream.binance.com:9443/stream?streams=' + streams;
+
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    console.log('[WS] Connected to Binance');
+    document.getElementById('lastUpdated').innerHTML = '<span class="ws-live"><span class="ws-dot"></span> Live (Binance WebSocket)</span>';
+  };
+
+  let uiScheduled = false;
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      const data = msg.data || msg;
+      const sym = (data.s || '').toUpperCase();
+      let tokenName = null, price = NaN;
+      if (sym) {
+        tokenName = Object.keys(WS_MARKETS).find(k => WS_MARKETS[k] === sym);
+        price = parseFloat(data.c);  // close price van miniTicker
+      }
+      if (!tokenName || isNaN(price) || price <= 0) return;
+      priceCache[tokenName] = price;
+
+      // Check stops/targets direct — alleen in lokale modus.
+      // In server-mode zou de WS tick (1000x/min) posities lokaal kunnen
+      // sluiten op een wick, waarna de 30s server-sync ze weer terugzet
+      // = flicker. Server paper-engine is single source of truth.
+      if (!_serverSyncActive) {
+        for (const pos of [...state.positions]) {
+          if (pos.token === tokenName) checkStopTarget(pos, price);
+        }
+      } else if (typeof window._tickBreachCheck === 'function') {
+        // Server-mode: client doet GEEN lokale close, maar WEL tick-driven trigger
+        // van de server-engine wanneer een level geraakt wordt → sub-second realisme.
+        window._tickBreachCheck(tokenName, price);
+      }
+
+      // Schedule UI update via requestAnimationFrame (geen vertraging)
+      if (!uiScheduled) {
+        uiScheduled = true;
+        requestAnimationFrame(() => {
+          uiScheduled = false;
+          updateUI();
+          document.getElementById('lastUpdated').innerHTML = '<span class="ws-live"><span class="ws-dot"></span> Live: ' + new Date().toLocaleTimeString() + ' (Binance WebSocket)</span>';
+        });
+      }
+
+      // Equity curve elke 15 sec — gemerged: main + Kronos open PnL
+      const now = Date.now();
+      if (state.equityCurve.length === 0 || now - state.equityCurve[state.equityCurve.length - 1].time > 15000) {
+        const _kc = (typeof kronosContribution === 'function') ? kronosContribution() : { total:0, startSeed:0 };
+        const _kPnl = (_kc.total || 0) - (_kc.startSeed || 0);
+        const totalValue = calcPortfolioValue() + _kPnl;
+        state.equityCurve.push({ time: now, value: totalValue });
+        if (state.equityCurve.length > 2000) state.equityCurve = state.equityCurve.slice(-1500);
+        saveState();
+      }
+
+    } catch (e) { /* ignore parse errors */ }
+  };
+
+  ws.onclose = () => {
+    console.log('[WS] Binance disconnected, reconnecting in 5s...');
+    document.getElementById('lastUpdated').innerHTML = '<span class="ws-live"><span class="ws-dot offline"></span> Reconnecting...</span>';
+    wsReconnectTimer = setTimeout(connectWebSocket, 5000);
+  };
+
+  ws.onerror = (e) => {
+    console.warn('[WS] Binance error:', e);
+    ws.close();
+  };
+}
+
+// Fallback polling als WebSocket faalt (elke 10 sec)
+async function fallbackPriceUpdate() {
+  if (ws && ws.readyState === WebSocket.OPEN) return; // WS werkt, skip polling
+  try {
+    const updates = TOKENS.map(async (token) => {
+      const candles = await fetchCandles(token.symbol);
+      if (candles && candles.length > 0) {
+        priceCache[token.name] = candles[candles.length - 1].close;
+      }
+    });
+    await Promise.all(updates);
+    // Client-side stop/target alleen in lokale modus (zelfde reden als
+    // refreshAll + WS tick handler): server-engine manages lifecycle.
+    if (!_serverSyncActive) {
+      for (const pos of [...state.positions]) {
+        const currentPrice = priceCache[pos.token];
+        if (currentPrice) checkStopTarget(pos, currentPrice);
+      }
+      saveState();
+    }
+    updateUI();
+    document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString() + ' (polling)';
+  } catch (e) {
+    console.warn('Fallback update error:', e.message);
+  }
+}
+
+// ═══ Server-Side State Sync (24/7 engine) ═══
+// Als de server engine draait, override lokale state met server data.
+// Zo zien alle bezoekers dezelfde "Camelot" trades, ook als hun tab dicht was.
+let _serverSyncActive = false;
+async function syncServerState() {
+  try {
+    const resp = await fetch('/api/paper-state', { cache: 'no-store' });
+    if (!resp.ok) return false;
+    const d = await resp.json();
+    if (!d.ok || !d.state) return false;
+    // Override lokale state met server state
+    state.balance = d.state.balance;
+    state.startBalance = d.state.startBalance;
+    state.startDate = d.state.startDate;
+    state.positions = d.state.positions || [];
+    state.trades = d.trades || [];
+    // Server equity is leading. Bij reset (server returns []) ook lokale curve resetten,
+    // anders blijft de oude curve "kleven" in browser cache.
+    state.equityCurve = (d.equity && d.equity.length > 0)
+      ? d.equity
+      : [{ time: Date.now(), value: Number(d.state.startBalance) || 10000 }];
+    // ── Overlay Kronos open PnL op equity curve (server kent Kronos sandbox niet) ──
+    try {
+      const _kc = (typeof kronosContribution === 'function') ? kronosContribution() : { total:0, startSeed:0 };
+      const _kPnl = (_kc.total || 0) - (_kc.startSeed || 0);
+      if (_kPnl !== 0 && state.equityCurve.length > 0) {
+        const _last = state.equityCurve[state.equityCurve.length - 1];
+        // Push een nieuwe punt zodat de curve effectief beweegt met Kronos delta
+        state.equityCurve.push({ time: Date.now(), value: (Number(_last.value) || 0) + _kPnl });
+        if (state.equityCurve.length > 2000) state.equityCurve = state.equityCurve.slice(-1500);
+      }
+    } catch(_){}
+    // Server-mode indicator
+    if (!_serverSyncActive) {
+      _serverSyncActive = true;
+      const lu = document.getElementById('lastUpdated');
+      if (lu) {
+        const banner = document.createElement('div');
+        banner.id = 'serverModeBadge';
+        banner.style.cssText = 'display:inline-block; margin-left:8px; padding:2px 8px; background:#012D4C; color:white; border-radius:6px; font-size:10px; font-weight:700;';
+        banner.textContent = '🟢 24/7 SERVER MODE';
+        lu.parentNode?.insertBefore(banner, lu.nextSibling);
+      }
+      // Disable client-side auto-trade: server doet dit
+      if (state.settings) state.settings.autoTrade = false;
+      console.log('[Paper] Server state sync actief — client-side auto-trade uitgeschakeld');
+      // UX: verberg toggle, toon server-mode badge
+      const _wrap = document.getElementById('autoTradeToggleWrap');
+      const _badge = document.getElementById('autoTradeServerBadge');
+      if (_wrap) _wrap.style.display = 'none';
+      if (_badge) _badge.style.display = 'block';
+    }
+    if (window._mergeRenderReady) updateUI();
+    return true;
+  } catch (e) {
+    console.warn('[Paper] Server sync mislukt:', e.message);
+    return false;
+  }
+}
+
+// ═══ Kronos Test Sync (isolated €1000 paper bot) — live WS + groen/rood ═══
+// USDT → EUR conversie via window._fxUsdtToEur. Fallback 1.0 (raw USDT).
+// ALLE € labels in paper-trading zijn in feite USDT na de Binance migratie;
+// deze helper past de conversie toe zodat het label correct EUR weergeeft.
+const _toEurPt = (v) => (Number(v) || 0) * (window._fxUsdtToEur || 1);
+function _fmtEur(n){ return '&euro;' + _toEurPt(n).toFixed(2).replace('.', ','); }
+function _fmtPct(n){ const v=Number(n)||0; return (v>=0?'+':'') + v.toFixed(2) + '%'; }
+function _esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _fmtPx(n){ const v = _toEurPt(n); if (!isFinite(v)) return '-'; if (v>=1000) return v.toFixed(2); if (v>=1) return v.toFixed(4); return v.toFixed(6); }
+
+// Inject styles éénmalig
+(function(){
+  if (document.getElementById('kronosStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'kronosStyles';
+  s.textContent = `
+    @keyframes kronosPulse{0%,100%{opacity:1}50%{opacity:.35}}
+    @keyframes kronosFlashUp{0%{background:#d4f4dd}100%{background:transparent}}
+    @keyframes kronosFlashDown{0%{background:#fadbd8}100%{background:transparent}}
+    .kronos-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2e8b57;margin-right:6px;animation:kronosPulse 1.4s ease-in-out infinite;vertical-align:middle}
+    .kronos-pos-row{transition:background .6s ease-out}
+    .kronos-pos-row.flash-up{animation:kronosFlashUp .9s ease-out}
+    .kronos-pos-row.flash-down{animation:kronosFlashDown .9s ease-out}
+    .k-up{color:#2e8b57;font-weight:700}
+    .k-down{color:#c0392b;font-weight:700}
+  `;
+  document.head.appendChild(s);
+})();
+
+// Live state cache
+let kServerState = null, kServerPositions = [], kServerTrades = [];
+const kLivePrices = {}, kLastPrices = {};
+let kronosWs = null, kronosWsBackoff = 1500;
+
+function kPnlForPos(p, livePrice){
+  const live = Number(livePrice || p.livePrice || p.entryPrice || 0);
+  const ent = Number(p.entryPrice || 0);
+  const qty = Number(p.qty || p.amount || 0);
+  // Identieke kosten-aware PnL als main bot (spread + exit fee meegerekend)
+  const exitSpread = live * SPREAD_PCT / 2;
+  const adjExit = p.side === 'LONG' ? (live - exitSpread) : (live + exitSpread);
+  let gross = 0;
+  if (p.side === 'LONG') gross = (adjExit - ent) * qty;
+  else gross = (ent - adjExit) * qty;
+  const exitFee = Math.abs(adjExit * qty) * TRADE_FEE;
+  const unr = gross - exitFee;
+  const sz = Number(p.sizeUsd || 0);
+  const uPct = sz > 0 ? (unr / sz) * 100 : 0;
+  return { live, ent, unr, uPct };
+}
+
+function renderKronos(){
+  if (!kServerState) return;
+  const st = kServerState, positions = kServerPositions, trades = kServerTrades;
+  const startBal = Number(st.startBalance || 10000);
+  const balance = Number(st.balance || startBal);
+  let openValue = 0, totalUnr = 0;
+  for (const p of positions){
+    const lp = kLivePrices[p.token];
+    const { unr } = kPnlForPos(p, lp);
+    openValue += Number(p.sizeUsd || 0);
+    totalUnr += unr;
+  }
+  const portfolio = balance + openValue + totalUnr;
+  const pnl = portfolio - startBal;
+  const pnlPct = startBal > 0 ? (pnl/startBal)*100 : 0;
+  const wins = trades.filter(t => Number(t.pnl) > 0).length;
+  const losses = trades.filter(t => Number(t.pnl) <= 0).length;
+  const wr = trades.length > 0 ? (wins/trades.length)*100 : null;
+
+  const set = (id,v,c)=>{ const el=document.getElementById(id); if(el){ el.innerHTML=v; if(c!==undefined) el.style.color=c; } };
+  const pnlClr = pnl >= 0 ? '#2e8b57' : '#c0392b';
+  set('kPortfolio', _fmtEur(portfolio), pnlClr);
+  set('kPnl', _fmtEur(pnl) + ' (' + _fmtPct(pnlPct) + ')', pnlClr);
+  set('kBalance', _fmtEur(balance));
+  set('kOpen', String(positions.length));
+  set('kTrades', String(trades.length));
+  set('kWinRate', wr==null ? '-' : (wr.toFixed(1)+'% <span style="color:#7a8a90;font-size:11px;">('+wins+'W/'+losses+'L)</span>'));
+
+  const pc = document.getElementById('kronosPositionsContainer');
+  if (pc){
+    if (positions.length === 0){
+      pc.innerHTML = '<div class="empty-state">Geen open Kronos posities</div>';
+    } else {
+      // ═══ Identiek tabel-format als hoofd positionsContainer (updatePositions) ═══
+      let html = '<div style="overflow-x:auto;"><table>'+
+        '<thead><tr>'+
+          '<th>Token</th><th>Side</th><th>Bedrag</th><th>Entry</th><th>Current</th><th>Target</th><th>Stop</th><th>P&amp;L</th><th>Stars</th><th>Status</th><th>Duur</th>'+
+        '</tr></thead><tbody>';
+      for (const p of positions){
+        const lp = kLivePrices[p.token], prev = kLastPrices[p.token];
+        const { live, ent, unr, uPct } = kPnlForPos(p, lp);
+        const dir = String(p.side||'').toUpperCase();
+        const pnlClass = unr >= 0 ? 'profit' : 'loss';
+        const stars = Number(p.stars || 0);
+        const openTs = p.openTime || p.openedAt || p.entryTime;
+        const duration = openTs ? formatDuration(Date.now() - new Date(openTs).getTime()) : '-';
+        let tick = '';
+        if (prev != null && live !== prev){
+          tick = live > prev ? '<span class="k-up">&#9650;</span>' : '<span class="k-down">&#9660;</span>';
+        }
+        const id = 'kpos_' + (p.id || p.token);
+        const statusBits = [];
+        if (p.breakeven) statusBits.push('<span class="profit">BE</span>');
+        if (p.partialClosed) statusBits.push('<span class="profit">50%</span>');
+        if (p.breakeven && p.stop !== p.initialStop) statusBits.push('<span class="profit">Trail</span>');
+        html += '<tr id="'+id+'" class="data-row">'+
+          '<td><span class="token-icon '+getIconClass(p.token)+'">'+(p.token||'?')[0]+'</span> '+_esc(p.token||p.symbol)+'</td>'+
+          '<td><span class="badge '+(dir === 'LONG' ? 'badge-long' : 'badge-short')+'">'+dir+'</span></td>'+
+          '<td style="font-weight:600;">'+_fmtEur(p.sizeUsd)+'</td>'+
+          '<td>'+_fmtPx(ent)+'</td>'+
+          '<td>'+_fmtPx(live)+' '+tick+'</td>'+
+          '<td>'+_fmtPx(p.target)+'</td>'+
+          '<td>'+_fmtPx(p.stop)+'</td>'+
+          '<td class="'+pnlClass+'">'+_fmtEur(unr)+' ('+_fmtPct(uPct)+')</td>'+
+          '<td class="stars">'+(stars > 0 ? '\u2605'.repeat(stars) : '-')+'</td>'+
+          '<td style="font-size:10px;">'+statusBits.join(' ')+'</td>'+
+          '<td>'+duration+'</td>'+
+        '</tr>';
+      }
+      html += '</tbody></table></div>';
+      pc.innerHTML = html;
+    }
+  }
+
+  // Re-render main positions so Kronos rows appear merged
+  try { updatePositions(); } catch(_){}
+  // Refresh balance/summary so Kronos PnL is reflected
+  try { updateBalance(); } catch(_){}
+  try { updateSummary(); } catch(_){}
+
+  const tc = document.getElementById('kronosTradesContainer');
+  if (tc){
+    if (trades.length === 0){
+      tc.innerHTML = '<div class="empty-state">Nog geen afgesloten Kronos trades</div>';
+    } else {
+      tc.innerHTML = trades.slice(0,20).map(t => {
+        const p = Number(t.pnl||0), clr = p >= 0 ? '#2e8b57' : '#c0392b';
+        const bgTint = p >= 0 ? 'rgba(46,139,87,0.05)' : 'rgba(192,57,43,0.05)';
+        const dir = String(t.side||'').toUpperCase();
+        const dirBg = dir === 'LONG' ? '#2e8b57' : '#c0392b';
+        const ts = t.closeTime || t.exitedAt;
+        const when = ts ? new Date(ts).toLocaleString() : '';
+        return '<div style="padding:8px 12px;background:'+bgTint+';border-bottom:1px solid #e5e1da;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">'+
+          '<div><strong>'+_esc(t.token||t.symbol)+'</strong>'+
+          '<span style="background:'+dirBg+';color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">'+dir+'</span>'+
+          '<span style="color:#7a8a90;font-size:11px;margin-left:8px;">'+_esc(t.reason||'')+'</span></div>'+
+          '<div style="text-align:right;"><div style="color:'+clr+';font-weight:700;">'+_fmtEur(p)+' ('+_fmtPct(t.pnlPct)+')</div>'+
+          '<div style="color:#7a8a90;font-size:11px;">'+when+'</div></div></div>';
+      }).join('');
+    }
+  }
+}
+
+function kFlashRow(token, isUp){
+  const pos = kServerPositions.find(p => p.token === token);
+  if (!pos) return;
+  const el = document.getElementById('kpos_' + (pos.id || token));
+  if (!el) return;
+  el.classList.remove('flash-up','flash-down');
+  void el.offsetWidth;
+  el.classList.add(isUp ? 'flash-up' : 'flash-down');
+}
+
+function connectKronosWs(){
+  const tokens = Array.from(new Set(kServerPositions.map(p => p.token)));
+  if (tokens.length === 0){
+    if (kronosWs){ try{ kronosWs.close(); }catch{} kronosWs = null; }
+    return;
+  }
+  const streams = tokens.map(t => t.toLowerCase() + 'usdt@miniTicker').join('/');
+  const url = 'wss://stream.binance.com:9443/stream?streams=' + streams;
+  if (kronosWs && kronosWs._url === url && kronosWs.readyState === WebSocket.OPEN) return;
+  if (kronosWs){ try{ kronosWs.close(); }catch{} }
+  try {
+    kronosWs = new WebSocket(url);
+    kronosWs._url = url;
+    kronosWs.onopen = () => { kronosWsBackoff = 1500; };
+    kronosWs.onmessage = ev => {
+      try {
+        const msg = JSON.parse(ev.data);
+        const data = msg.data || msg;
+        const sym = (data.s || '').toUpperCase();
+        if (!sym.endsWith('USDT')) return;
+        const tok = sym.slice(0, -4);
+        const px = parseFloat(data.c);
+        if (!isFinite(px)) return;
+        const prev = kLivePrices[tok];
+        if (prev != null && prev !== px){
+          kLastPrices[tok] = prev;
+          kFlashRow(tok, px > prev);
+        }
+        kLivePrices[tok] = px;
+        renderKronos();
+        // Sub-second tick-driven trigger: scant alle open posities (Camelot + Kronos)
+        // en pingt de juiste bot-engine op breach. Debounced (max 1× per 2s per bot).
+        if (typeof window._tickBreachCheck === 'function') {
+          window._tickBreachCheck(tok, px);
+        }
+      } catch {}
+    };
+    kronosWs.onclose = () => {
+      setTimeout(connectKronosWs, kronosWsBackoff);
+      kronosWsBackoff = Math.min(kronosWsBackoff * 1.6, 15000);
+    };
+    kronosWs.onerror = () => { try{ kronosWs.close(); }catch{} };
+  } catch (e){ console.warn('[Kronos] WS connect fail:', e.message); setTimeout(connectKronosWs, 5000); }
+}
+
+async function syncKronosState() {
+  try {
+    const resp = await fetch('/api/kronos?action=state', { cache: 'no-store' });
+    if (!resp.ok) return;
+    const d = await resp.json();
+    if (!d || !d.ok) return;
+    // Merged-mode: Kronos draait in gedeelde portfolio:* pool; sandbox-panel skippen
+    // (anders dubbeltelling van balance + posities die al via state.positions binnenkomen).
+    if (d.merged) {
+      kServerState = null;
+      kServerPositions = [];
+      kServerTrades = [];
+      return;
+    }
+    kServerState = d.state || {};
+    kServerPositions = d.positions || [];
+    kServerTrades = d.trades || [];
+    for (const p of kServerPositions){
+      if (kLivePrices[p.token] == null && p.livePrice) kLivePrices[p.token] = Number(p.livePrice);
+    }
+    connectKronosWs();
+    renderKronos();
+    // Combined balance/PnL toont Camelot + Kronos delta. Re-render zodra
+    // Kronos state binnen is, anders blijft eerste render hangen op
+    // Camelot-only waarde (140) tot volgende periodieke tick (jitter naar 165).
+    if (window._mergeRenderReady) {
+      try { updateBalance(); updateSummary(); updateTradeLog(); } catch {}
+    }
+  } catch (e) { console.warn('[Kronos] state sync mislukt:', e.message); }
+}
+
+async function init() {
+  initUI();
+  // Beide datasets parallel ophalen, render-flag pas op true na BOTH klaar.
+  // Voorkomt dat de balance-card eerst €140 (Camelot-only) toont en dan naar
+  // €165 (incl. Kronos delta) springt op hard refresh.
+  window._mergeRenderReady = false;
+  const [serverOk] = await Promise.all([
+    syncServerState(),
+    syncKronosState(),
+  ]);
+  window._mergeRenderReady = true;
+  // Eén render met beide datasets reeds binnen → geen jitter zichtbaar
+  try { updateUI(); } catch {}
+  if (serverOk) setInterval(syncServerState, 30000);
+  setInterval(syncKronosState, 15000);
+
+  // FIX 2026-04-22: browser-driven tick-trigger — sub-second latency voor stop/target
+  // detection wanneer deze tab open is. Architectuur:
+  //   • Binance @miniTicker WebSocket (~1Hz per token) levert live prijs.
+  //   • Op élke tick checken we alle open posities op stop/target1/target breach.
+  //   • Bij breach: debounced fetch /api/kronos?action=run (max 1× per 2s per bot).
+  //   • Heartbeat fallback (30s) voor edge cases waar tick geen breach toont maar
+  //     managePositions wel iets wil doen (breakeven/trail updates, time-exit).
+  // Voor 24/7 zonder tab open → deploy workers/tick-worker.js op Railway/Fly.io
+  // (zie WORKER_SETUP.md — ms-level latency via persistent Binance WS connection).
+  let _lastKronosTrigger = 0;
+  let _lastPaperTrigger = 0;
+  const TRIGGER_COOLDOWN_MS = 2000;
+
+  async function _triggerKronosRun(reason, tickMode) {
+    const now = Date.now();
+    if (now - _lastKronosTrigger < TRIGGER_COOLDOWN_MS) return;
+    _lastKronosTrigger = now;
+    try {
+      const url = tickMode ? '/api/kronos?action=run&tick=1' : '/api/kronos?action=run';
+      console.log('[Tick] Kronos trigger:', reason || 'heartbeat');
+      await fetch(url, { cache: 'no-store' });
+    } catch {}
+  }
+  async function _triggerPaperTick(reason) {
+    const now = Date.now();
+    if (now - _lastPaperTrigger < TRIGGER_COOLDOWN_MS) return;
+    _lastPaperTrigger = now;
+    try {
+      console.log('[Tick] Paper trigger:', reason || 'heartbeat');
+      await fetch('/api/paper-engine?action=tick', { cache: 'no-store' });
+    } catch {}
+  }
+
+  // Tick breach check — wordt per binance tick aangeroepen vanuit ws.onmessage
+  // Verwacht: token (bv 'BTC'), price (live tick). Scant alle open posities en
+  // triggert de relevante bot-engine als een level geraakt wordt.
+  window._tickBreachCheck = function(token, price) {
+    if (!isFinite(price) || price <= 0) return;
+    const positions = (state && Array.isArray(state.positions)) ? state.positions : [];
+    for (const pos of positions) {
+      if (pos.token !== token) continue;
+      if (pos.status && pos.status !== 'open') continue;
+      let breach = null;
+      if (pos.side === 'LONG') {
+        if (pos.stop && price <= pos.stop) breach = 'stop@' + pos.stop.toFixed(2);
+        else if (pos.target && price >= pos.target) breach = 'target@' + pos.target.toFixed(2);
+        else if (!pos.partialClosed && pos.target1 && price >= pos.target1) breach = 'target1@' + pos.target1.toFixed(2);
+      } else {
+        if (pos.stop && price >= pos.stop) breach = 'stop@' + pos.stop.toFixed(2);
+        else if (pos.target && price <= pos.target) breach = 'target@' + pos.target.toFixed(2);
+        else if (!pos.partialClosed && pos.target1 && price <= pos.target1) breach = 'target1@' + pos.target1.toFixed(2);
+      }
+      if (breach) {
+        const bot = pos.bot || 'paper_4h';
+        const reason = `${token} ${pos.side} ${breach} tick=${price}`;
+        // tickMode=true → server skipt signal-gen, doet alleen close (fast path)
+        if (bot === 'paper_kronos') _triggerKronosRun(reason, true);
+        else _triggerPaperTick(reason);
+      }
+    }
+  };
+
+  // Heartbeat voor niet-breach management (breakeven/trail/time-exit/funding)
+  _triggerKronosRun('init');
+  _triggerPaperTick('init');
+  setInterval(() => _triggerKronosRun('heartbeat-30s'), 30000);
+  setInterval(() => _triggerPaperTick('heartbeat-30s'), 30000);
+
+  await refreshAll();
+  // Start WebSocket voor real-time prijzen
+  connectWebSocket();
+  // Live klok elke seconde
+  setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      document.getElementById('lastUpdated').innerHTML = '<span class="ws-live"><span class="ws-dot"></span> Live: ' + new Date().toLocaleTimeString() + ' (Binance WebSocket)</span>';
+    }
+  }, 1000);
+  // Volledige refresh (signalen + candles) elke 60 sec
+  refreshTimer = setInterval(refreshAll, 60000);
+  // Fallback polling elke 10 sec (alleen als WS down is)
+  setInterval(fallbackPriceUpdate, 10000);
+  // Bot Selectie — periodic sync (initial load gebeurt al top-level
+  // bij script-parse, zie regel ~4063, zodat de tiles direct verschijnen
+  // ipv te wachten op refreshAll() klaar is)
+  if (typeof refreshBotSelectIfClean === 'function') {
+    setInterval(refreshBotSelectIfClean, 30000);
+  }
+  // Live equity-curve loop — sample PV elke 1s en redraw zodat de lijn groeit
+  // (zelfde "moving line" sensatie als de klassieke Equity Curve).
+  if (typeof startHistoryEquityLiveLoop === 'function') startHistoryEquityLiveLoop();
+}
+
+// =============================================
+// HISTORY EQUITY CURVE (server-side, sinds startdatum)
+// =============================================
+const historyEquity = {
+  data: null,            // {curve, summary, startBalance, startDate, ...}
+  bot: 'total',          // 'all' | 'total' | 'camelot' | 'kronos' (default = compact total view)
+  lastFetch: 0,
+  drawScheduled: false,
+  // ── Live tail: intraday PV samples die de lijn LATEN GROEIEN, net als de
+  // klassieke Equity Curve (die elke 15-60s een punt push'd). Ringbuffer
+  // gevuld door _historyEquityLiveSample() elke 1s als getLivePV() data heeft.
+  liveTicks: [],         // [{ts, total}]
+  liveTicksMax: 240,     // 4 min @ 1s, of ~10 min @ 2.5s — genoeg voor zichtbare beweging
+  liveLoopHandle: null,
+  liveLastPV: null,
+};
+
+function _historyEquityLiveSample() {
+  const pv = (typeof getLivePV === 'function') ? getLivePV() : null;
+  if (pv === null || !isFinite(pv) || pv <= 0) return;
+  const arr = historyEquity.liveTicks;
+  const lastT = arr[arr.length - 1];
+  // De-dupe: skip als zelfde tick (binnen 200ms én zelfde value) of als pagina
+  // al backgrounded is (visibilityState=hidden) — geen ticks loggen die je toch
+  // niet ziet.
+  if (document.visibilityState === 'hidden') return;
+  if (lastT && (Date.now() - lastT.ts) < 200 && Math.abs((lastT.total - pv)) < 0.005) return;
+  arr.push({ ts: Date.now(), total: pv });
+  if (arr.length > historyEquity.liveTicksMax) {
+    arr.splice(0, arr.length - historyEquity.liveTicksMax);
+  }
+  historyEquity.liveLastPV = pv;
+}
+
+function startHistoryEquityLiveLoop() {
+  if (historyEquity.liveLoopHandle) return;
+  // 1s interval = 1Hz line growth + 1Hz pulse refresh. Light op CPU want
+  // canvas scaling/ctx prep is goedkoop t.o.v. een full updateUI().
+  historyEquity.liveLoopHandle = setInterval(() => {
+    if (document.visibilityState === 'hidden') return;
+    _historyEquityLiveSample();
+    if (historyEquity.data) scheduleHistoryEquityDraw();
+  }, 1000);
+}
+function stopHistoryEquityLiveLoop() {
+  if (historyEquity.liveLoopHandle) {
+    clearInterval(historyEquity.liveLoopHandle);
+    historyEquity.liveLoopHandle = null;
+  }
+}
+
+async function fetchHistoryEquity(force = false) {
+  // Cache 25s op client-side (server CDN s-maxage=30 + revalidate=120). Fresh
+  // genoeg om de server-snapshot wave (om de 5-10 min) tijdig te zien zonder
+  // /api/equity-curve elke seconde te raken.
+  if (!force && historyEquity.data && Date.now() - historyEquity.lastFetch < 25000) {
+    return historyEquity.data;
+  }
+  try {
+    const r = await fetch('/api/equity-curve?bot=all');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'unknown');
+    historyEquity.data = j;
+    historyEquity.lastFetch = Date.now();
+    return j;
+  } catch (e) {
+    console.warn('[history-equity] fetch fail:', e.message);
+    return null;
+  }
+}
+
+// Live PV — som van state.balance + open posities mark-to-market + Kronos contrib.
+// Gebruikt dezelfde formule als de live equity-chart (regel ~2030).
+function getLivePV() {
+  try {
+    if (typeof calcPortfolioValue !== 'function') return null;
+    const _kc = (typeof kronosContribution === 'function')
+      ? kronosContribution()
+      : { total: 0, startSeed: 0 };
+    const _kronosNetPnl = (_kc.total || 0) - (_kc.startSeed || 0);
+    const pv = calcPortfolioValue() + _kronosNetPnl;
+    return (isFinite(pv) && pv > 0) ? pv : null;
+  } catch (e) { return null; }
+}
+
+// Throttled redraw — geroepen vanuit updateUI() (~elke WS-tick).
+// requestAnimationFrame samenvouwt meerdere triggers in één frame.
+function scheduleHistoryEquityDraw() {
+  if (historyEquity.drawScheduled) return;
+  if (!historyEquity.data) return;   // niets te tekenen
+  historyEquity.drawScheduled = true;
+  requestAnimationFrame(() => {
+    historyEquity.drawScheduled = false;
+    drawHistoryEquity();
+    renderHistoryEquitySummary();
+  });
+}
+
+function switchHistoryBot(bot, el) {
+  historyEquity.bot = bot;
+  document.querySelectorAll('.history-equity-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  drawHistoryEquity();
+}
+
+// =============================================
+// BOT SELECTIE — kies welke engines mogen traden
+// =============================================
+const botSelect = {
+  serverState: null,    // {paper_4h:{enabled,mode,...}, ...}
+  uiState: null,        // {paper_4h:bool, ...} mirror voor enabled pending edits
+  dirty: false,
+  saving: false,
+  lastFetchTs: 0,
+  envInfo: null,        // {liveMainnetConfirmed:bool}
+  TOKEN_KEY: 'camelot:bot-config-token',  // localStorage cache van auth token
+};
+
+function _botSelectToken() {
+  try { return localStorage.getItem(botSelect.TOKEN_KEY) || ''; } catch { return ''; }
+}
+function _setBotSelectToken(t) {
+  try {
+    if (t) localStorage.setItem(botSelect.TOKEN_KEY, t);
+    else localStorage.removeItem(botSelect.TOKEN_KEY);
+  } catch {}
+}
+
+async function loadBotSelect(_attempt = 1) {
+  try {
+    const t0 = Date.now();
+    const r = await fetch('/api/bot-config', { cache: 'no-store' });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json();
+    if (!j.ok || !j.bots) throw new Error('bad response');
+    botSelect.serverState = j.bots;
+    botSelect.envInfo = j.env || { liveMainnetConfirmed: false };
+    botSelect.uiState = {};
+    for (const [k, v] of Object.entries(j.bots)) botSelect.uiState[k] = !!v.enabled;
+    botSelect.dirty = false;
+    botSelect.lastFetchTs = Date.now();
+    renderBotSelect();
+    const liveCount = Object.values(j.bots).filter(b => b.mode === 'live').length;
+    console.log(`[bot-select] loaded ${Object.keys(j.bots).length} bots in ${Date.now() - t0}ms (${liveCount} live)`);
+  } catch (e) {
+    console.warn(`[bot-select] load attempt ${_attempt} failed: ${e.message}`);
+    // Auto-retry op cold-start hiccups (max 2× extra, 1.5s + 4s backoff).
+    // Zonder retry blijft "Laden…" forever staan als de eerste fetch faalt.
+    if (_attempt < 3) {
+      const wait = _attempt === 1 ? 1500 : 4000;
+      const status = document.getElementById('botSelectStatus');
+      if (status) status.textContent = `Verbinden… (poging ${_attempt + 1})`;
+      setTimeout(() => loadBotSelect(_attempt + 1), wait);
+      return;
+    }
+    const grid = document.getElementById('botSelectGrid');
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1; padding:10px; font-size:12px; color:#FC4C4C;">Kon bot-config niet laden: ${e.message} — <a href="javascript:loadBotSelect()" style="color:#FC4C4C; text-decoration:underline;">opnieuw proberen</a></div>`;
+    const status = document.getElementById('botSelectStatus');
+    if (status) status.textContent = 'fout — klik "opnieuw proberen" of refresh de pagina';
+  }
+}
+
+function renderBotSelect() {
+  const grid = document.getElementById('botSelectGrid');
+  if (!grid || !botSelect.uiState) return;
+  const bots = botSelect.serverState || {};
+  const env  = botSelect.envInfo || {};
+  const order = ['paper_4h', 'paper_kronos'];
+  const html = [];
+  for (const id of order) {
+    if (!bots[id]) continue;
+    const meta = bots[id];
+    const enabled = !!botSelect.uiState[id];
+    const mode = meta.mode || 'paper';   // server-side state, niet pending
+    const tileCls = (enabled ? 'on' : 'off') + (mode === 'live' ? ' mode-live' : '');
+    const statusCls = enabled ? 'on' : 'off';
+    const statusTxt = enabled ? 'AAN' : 'UIT';
+    const subline = `${meta.short || id}${meta.page ? ' · ' + meta.page : ''}`;
+    const liveBadge = mode === 'live' ? `<span class="bot-select-live-badge">● LIVE</span>` : '';
+    // Live-knop disabled als env-gate niet gezet (defense in depth ook in UI)
+    const liveBtnDisabled = !env.liveMainnetConfirmed;
+    const liveBtnTitle = liveBtnDisabled
+      ? 'LIVE_MAINNET_CONFIRM env niet gezet — set in Vercel env eerst'
+      : 'Schakel naar LIVE Binance trading (echte orders!)';
+    html.push(`
+      <div class="bot-select-tile ${tileCls}" id="botTile_${id}">
+        <div class="bot-select-meta" style="flex:1; min-width:0;">
+          <div class="bot-select-name">
+            ${meta.label || id}
+            <span class="bot-select-status ${statusCls}" id="botStatus_${id}">${statusTxt}</span>
+            ${liveBadge}
+          </div>
+          <div class="bot-select-sub">${subline}</div>
+          <div class="bot-select-mode-row">
+            <span class="bot-select-mode-label">Mode:</span>
+            <div class="bot-select-mode-seg" id="botModeSeg_${id}">
+              <button type="button" class="paper ${mode === 'paper' ? 'active' : ''}"
+                      onclick="setBotMode('${id}', 'paper')">Paper</button>
+              <button type="button" class="live ${mode === 'live' ? 'active' : ''}"
+                      ${liveBtnDisabled ? 'disabled' : ''}
+                      title="${liveBtnTitle}"
+                      onclick="setBotMode('${id}', 'live')">Live</button>
+            </div>
+          </div>
+        </div>
+        <div class="toggle ${enabled ? 'active' : ''}" id="botToggle_${id}" onclick="toggleBotSelect('${id}')"></div>
+      </div>
+    `);
+  }
+  // Optionele warn-banner als env mist
+  if (!env.liveMainnetConfirmed) {
+    html.push(`
+      <div class="bot-select-env-warn">
+        <strong>Live trading niet geactiveerd</strong> : de Camelot Tim's Trading Bot bots draaien in paper modus tot de strategie voldoende bewezen is en winstgevend blijkt. Pas dan wordt de live modus geactiveerd.
+      </div>
+    `);
+  }
+  grid.innerHTML = html.join('');
+  _updateBotSelectStatusBar();
+}
+
+// ── Mode switch (paper ↔ live) ──
+// Schrijft direct naar /api/bot-config — geen pending/save flow zoals
+// enable-toggle. Reden: live-mode is consequent en moet expliciet bevestigd
+// worden, dus elke klik = directe commit (na confirm).
+async function setBotMode(id, newMode) {
+  if (!botSelect.serverState || !botSelect.serverState[id]) return;
+  const cur = botSelect.serverState[id].mode || 'paper';
+  if (cur === newMode) return;   // no-op
+  // Going live: harde confirm
+  if (newMode === 'live') {
+    const meta = botSelect.serverState[id];
+    const confirmed = confirm(
+      `⚠️  ECHTE ORDERS via Binance ⚠️\n\n` +
+      `Bot: ${meta.label || id}\n` +
+      `Switch:  PAPER  →  LIVE (Binance mainnet)\n\n` +
+      `Vanaf nu plaatst deze bot ECHTE orders met ECHT GELD bij elke nieuwe entry.\n` +
+      `Bestaande paper-posities blijven paper. Alleen NIEUWE trades zijn live.\n\n` +
+      `Ben je zeker?`
+    );
+    if (!confirmed) return;
+  }
+  let token = _botSelectToken();
+  if (!token) {
+    token = prompt('Bot-config token (BOT_CONFIG_TOKEN of PAPER_ENGINE_SECRET):', '');
+    if (!token) return;
+    _setBotSelectToken(token);
+  }
+  try {
+    const r = await fetch('/api/bot-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-bot-token': token },
+      body: JSON.stringify({ bot: id, mode: newMode }),
+    });
+    if (r.status === 401) {
+      _setBotSelectToken('');
+      throw new Error('unauthorized — token clear, probeer opnieuw');
+    }
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || ('http ' + r.status));
+    // Server kan partial-fail returnen (bv env-gate fail) — check results
+    const myResult = (j.results || []).find(x => x.bot === id);
+    if (myResult && !myResult.ok) throw new Error(myResult.error || 'server rejected mode switch');
+    botSelect.serverState = j.bots;
+    botSelect.envInfo = j.env || botSelect.envInfo;
+    botSelect.lastFetchTs = Date.now();
+    renderBotSelect();
+    if (typeof showToast === 'function') {
+      showToast(`${id} → ${newMode.toUpperCase()}`, newMode === 'live' ? 'warning' : 'success');
+    }
+  } catch (e) {
+    if (typeof showToast === 'function') showToast('Mode switch mislukt: ' + e.message, 'error');
+    else alert('Mode switch mislukt: ' + e.message);
+  }
+}
+
+function toggleBotSelect(id) {
+  if (!botSelect.uiState || !(id in botSelect.uiState)) return;
+  botSelect.uiState[id] = !botSelect.uiState[id];
+  botSelect.dirty = _isBotSelectDirty();
+  // Update tile + toggle in place (no full re-render to avoid flicker)
+  const tile = document.getElementById('botTile_' + id);
+  const toggle = document.getElementById('botToggle_' + id);
+  const status = document.getElementById('botStatus_' + id);
+  const enabled = botSelect.uiState[id];
+  if (tile) {
+    tile.classList.remove('on', 'off');
+    tile.classList.add(enabled ? 'on' : 'off');
+  }
+  if (toggle) toggle.classList.toggle('active', enabled);
+  if (status) {
+    status.classList.remove('on', 'off');
+    status.classList.add(enabled ? 'on' : 'off');
+    status.textContent = enabled ? 'AAN' : 'UIT';
+  }
+  _updateBotSelectStatusBar();
+}
+
+function _isBotSelectDirty() {
+  if (!botSelect.serverState || !botSelect.uiState) return false;
+  for (const id of Object.keys(botSelect.uiState)) {
+    if (!!botSelect.uiState[id] !== !!botSelect.serverState[id]?.enabled) return true;
+  }
+  return false;
+}
+
+function _updateBotSelectStatusBar() {
+  const bar  = document.getElementById('botSelectSavebar');
+  const stat = document.getElementById('botSelectStatus');
+  const btn  = document.getElementById('botSelectSaveBtn');
+  if (!bar || !stat || !btn) return;
+  if (botSelect.saving) {
+    bar.classList.remove('dirty');
+    stat.textContent = 'Opslaan…';
+    btn.style.display = 'none';
+    return;
+  }
+  if (botSelect.dirty) {
+    bar.classList.add('dirty');
+    stat.textContent = 'Niet-opgeslagen wijzigingen';
+    btn.style.display = '';
+  } else {
+    bar.classList.remove('dirty');
+    const ts = botSelect.lastFetchTs ? new Date(botSelect.lastFetchTs).toLocaleTimeString() : '';
+    const onCount = Object.values(botSelect.uiState || {}).filter(Boolean).length;
+    const total = Object.keys(botSelect.uiState || {}).length;
+    stat.textContent = `${onCount}/${total} bots actief${ts ? ' · gesynced ' + ts : ''}`;
+    btn.style.display = 'none';
+  }
+}
+
+async function saveBotSelect() {
+  if (!botSelect.dirty || botSelect.saving || !botSelect.uiState) return;
+  let token = _botSelectToken();
+  if (!token) {
+    token = prompt('Bot-config token (BOT_CONFIG_TOKEN of PAPER_ENGINE_SECRET):', '');
+    if (!token) return;
+    _setBotSelectToken(token);
+  }
+  botSelect.saving = true;
+  _updateBotSelectStatusBar();
+  try {
+    const updates = {};
+    for (const id of Object.keys(botSelect.uiState)) updates[id] = !!botSelect.uiState[id];
+    const r = await fetch('/api/bot-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-bot-token': token },
+      body: JSON.stringify({ updates }),
+    });
+    if (r.status === 401) {
+      _setBotSelectToken('');
+      throw new Error('unauthorized — token clear, probeer opnieuw');
+    }
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || ('http ' + r.status));
+    botSelect.serverState = j.bots;
+    botSelect.lastFetchTs = Date.now();
+    botSelect.dirty = false;
+    if (typeof showToast === 'function') showToast('Bot-config opgeslagen', 'success');
+  } catch (e) {
+    if (typeof showToast === 'function') showToast('Opslaan mislukt: ' + e.message, 'error');
+    else alert('Opslaan mislukt: ' + e.message);
+  } finally {
+    botSelect.saving = false;
+    _updateBotSelectStatusBar();
+  }
+}
+
+// Periodieke refresh zodat parallelle wijzigingen (andere browser, kill-switch
+// flow) zichtbaar worden — maar nooit een dirty edit overschrijven.
+async function refreshBotSelectIfClean() {
+  if (botSelect.dirty || botSelect.saving) return;
+  await loadBotSelect();
+}
+
+function drawHistoryEquity() {
+  const canvas = document.getElementById('historyEquityCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = Math.max(1, rect.width * 2);
+  canvas.height = Math.max(1, rect.height * 2);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(2, 2);
+  const w = rect.width;
+  const h = rect.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const j = historyEquity.data;
+  if (!j || !j.curve || j.curve.length < 2) {
+    ctx.fillStyle = '#4a6a80';
+    ctx.font = '13px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(j ? 'Te weinig data — eerst trades nodig' : 'Laden...', w / 2, h / 2);
+    return;
+  }
+
+  // ── LIVE OVERLAY ──
+  // Server-curve telt alleen GESLOTEN trades. Voor de laatste dag voegen we
+  // de OPEN positions unrealized PnL toe zodat het meebeweegt met WS-prijzen.
+  // We werken op een KOPIE van de laatste entry (geen mutatie van fetched data).
+  const livePV = getLivePV();
+  const startBal = j.startBalance || 10000;
+  const lastIdx = j.curve.length - 1;
+  const liveLast = { ...j.curve[lastIdx] };
+  let isLiveOverlay = false;
+  if (livePV != null) {
+    // Open-position unrealized totaal = livePV - (startBal + alle gerealiseerde pnl)
+    // Want: state.balance (in calcPortfolioValue) = startBal + closed.pnl - cost_of_open_positions
+    //       en open positions market value = cost_of_open_positions + unrealized
+    //       → som = startBal + closed.pnl + unrealized = livePV
+    // Dus: unrealizedTotal = livePV - j.curve[lastIdx].total
+    const unrealized = livePV - j.curve[lastIdx].total;
+    if (Math.abs(unrealized) > 0.01) {
+      liveLast.total = livePV;
+      // Per-bot unrealized split is hier niet beschikbaar (server geeft enkel
+      // realized per bot). We tonen alleen de TOTAAL-lijn als live; per-bot
+      // lijnen blijven realized-only. Dat is OK — TOTAAL is wat ertoe doet.
+      isLiveOverlay = true;
+    }
+  }
+
+  // Build series afhankelijk van bot-mode
+  const mode = historyEquity.bot;
+  const dates = j.curve.map(c => c.date);
+  let series; // {label,color,values,baseline}[]
+
+  // Curve met live-overlay voor totaal
+  const totalSeries = j.curve.map((c, i) => i === lastIdx ? liveLast.total : c.total);
+
+  // ── LIVE TAIL: extend totalSeries met intraday PV samples zodat de lijn
+  // visueel groeit (zelfde sensatie als de klassieke Equity Curve). Alleen
+  // toepassen als de buffer minstens 2 ticks heeft én live-overlay actief is.
+  // Voor 'camelot' / 'kronos' modi (puur cum P&L per bot) kunnen we geen live
+  // tail tekenen — server geeft die per-bot split alleen voor closed trades.
+  const liveTail = (isLiveOverlay && historyEquity.liveTicks && historyEquity.liveTicks.length >= 2)
+    ? historyEquity.liveTicks.slice()
+    : [];
+  // Skip het eerste live-tick als die te dicht bij liveLast.total ligt (avoid
+  // double-knik op de overgang dag→intraday).
+  if (liveTail.length >= 2 && Math.abs(liveTail[0].total - liveLast.total) < 0.01) {
+    liveTail.shift();
+  }
+  if (liveTail.length >= 2 && (mode === 'total' || mode === 'all')) {
+    for (const t of liveTail) totalSeries.push(t.total);
+  }
+
+  if (mode === 'all') {
+    // Per-bot lijnen krijgen geen live tail (geen per-bot live-pnl beschikbaar);
+    // we extend ze met hun laatste waarde om alle 3 dezelfde lengte te houden
+    // — anders schaalt de x-as niet kloppend en lopen ze visueel uit de pas.
+    const merlijnArr = j.curve.map(c => startBal + c.merlijnPnl);
+    const kronosArr  = j.curve.map(c => startBal + c.kronosPnl);
+    if (liveTail.length >= 2) {
+      const lastM = merlijnArr[merlijnArr.length - 1];
+      const lastK = kronosArr[kronosArr.length - 1];
+      for (let i = 0; i < liveTail.length; i++) { merlijnArr.push(lastM); kronosArr.push(lastK); }
+    }
+    series = [
+      { label: 'Totaal' + (isLiveOverlay ? ' (live)' : ''), color: '#012D4C', values: totalSeries, baseline: startBal },
+      { label: 'Camelot cum P&L', color: '#2e8b57', values: merlijnArr, baseline: startBal },
+      { label: 'Kronos cum P&L',  color: '#cc6600', values: kronosArr,  baseline: startBal },
+    ];
+  } else if (mode === 'total') {
+    const vals = totalSeries;
+    const isUp = vals[vals.length - 1] >= startBal;
+    series = [{ label: 'Totaal' + (isLiveOverlay ? ' (live)' : ''), color: isUp ? '#2e8b57' : '#FC4C4C', values: vals, baseline: startBal, fill: true, liveLast: isLiveOverlay }];
+  } else if (mode === 'camelot') {
+    const pnl = j.curve.map(c => c.merlijnPnl);
+    const isUp = pnl[pnl.length - 1] >= 0;
+    series = [{ label: 'Camelot cum P&L', color: isUp ? '#2e8b57' : '#FC4C4C', values: pnl, baseline: 0, fill: true, asPnl: true }];
+  } else if (mode === 'kronos') {
+    const pnl = j.curve.map(c => c.kronosPnl);
+    const isUp = pnl[pnl.length - 1] >= 0;
+    series = [{ label: 'Kronos cum P&L', color: isUp ? '#2e8b57' : '#FC4C4C', values: pnl, baseline: 0, fill: true, asPnl: true }];
+  }
+
+  // Y-range
+  const allVals = series.flatMap(s => s.values).concat(series.map(s => s.baseline));
+  let minVal = Math.min(...allVals);
+  let maxVal = Math.max(...allVals);
+  const span = maxVal - minVal || Math.abs(maxVal) || 1;
+  minVal -= span * 0.05;
+  maxVal += span * 0.05;
+  const range = maxVal - minVal || 1;
+
+  const pad = { top: 12, right: 24, bottom: 22, left: 50 };
+  const chartW = w - pad.left - pad.right;
+  const chartH = h - pad.top - pad.bottom;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,32,53,0.06)';
+  ctx.lineWidth = 1;
+  const gridLines = 4;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = pad.top + (i / gridLines) * chartH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+    const v = maxVal - (i / gridLines) * range;
+    ctx.fillStyle = '#4a6a80';
+    ctx.font = '9.5px Inter';
+    ctx.textAlign = 'right';
+    ctx.fillText('\u20AC' + Math.round(v), pad.left - 5, y + 3);
+  }
+
+  // Baseline marker (startBalance / 0)
+  const baseY = pad.top + (1 - (series[0].baseline - minVal) / range) * chartH;
+  ctx.strokeStyle = 'rgba(0,32,53,0.18)';
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, baseY);
+  ctx.lineTo(w - pad.right, baseY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // X-axis labels (start, mid, end) — short MM-DD format voor compact view
+  const shortDate = (s) => s.slice(5);   // YYYY-MM-DD → MM-DD
+  const xLabels = [];
+  if (dates.length >= 2) {
+    xLabels.push({ idx: 0, label: shortDate(dates[0]) });
+    if (dates.length >= 4) xLabels.push({ idx: Math.floor(dates.length / 2), label: shortDate(dates[Math.floor(dates.length / 2)]) });
+    xLabels.push({ idx: dates.length - 1, label: shortDate(dates[dates.length - 1]) });
+  }
+  ctx.fillStyle = '#4a6a80';
+  ctx.font = '9.5px Inter';
+  ctx.textAlign = 'center';
+  for (const { idx, label } of xLabels) {
+    const x = pad.left + (idx / (dates.length - 1)) * chartW;
+    ctx.fillText(label, x, h - pad.bottom + 14);
+  }
+
+  // Draw each series
+  for (const s of series) {
+    ctx.beginPath();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = s.label.startsWith('Totaal') ? 2.5 : 1.8;
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < s.values.length; i++) {
+      const x = pad.left + (i / (s.values.length - 1)) * chartW;
+      const y = pad.top + (1 - (s.values[i] - minVal) / range) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    if (s.fill) {
+      ctx.lineTo(pad.left + chartW, baseY);
+      ctx.lineTo(pad.left, baseY);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+      const isUp = s.values[s.values.length - 1] >= s.baseline;
+      grad.addColorStop(0, isUp ? 'rgba(46,139,87,0.20)' : 'rgba(252,76,76,0.20)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // End label
+    const lastX = pad.left + chartW;
+    const lastY = pad.top + (1 - (s.values[s.values.length - 1] - minVal) / range) * chartH;
+    ctx.fillStyle = s.color;
+    ctx.font = 'bold 10.5px Inter';
+    ctx.textAlign = 'right';
+    const endVal = s.values[s.values.length - 1];
+    const labelTxt = s.asPnl
+      ? (endVal >= 0 ? '+' : '') + '\u20AC' + endVal.toFixed(0)
+      : '\u20AC' + endVal.toFixed(0);
+    ctx.fillText(labelTxt, lastX - 4, lastY - 6);
+
+    // ── LIVE PULSING DOT op laatste data-point (alleen totaal-serie) ──
+    const isTotalSeries = s.label.startsWith('Totaal');
+    if (isLiveOverlay && isTotalSeries) {
+      // Pulse animatie via Date.now() (canvas heeft geen CSS animations)
+      const phase = (Date.now() % 1600) / 1600;        // 0..1
+      const ringR = 4 + phase * 9;                     // 4 → 13
+      const ringAlpha = 0.55 * (1 - phase);            // fade out
+      // Outer ring (pulse)
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(46,139,87,${ringAlpha.toFixed(3)})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Inner solid dot
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#2e8b57';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+  }
+
+  // Toggle LIVE badge boven de chart
+  const badge = document.getElementById('historyEquityLiveBadge');
+  if (badge) badge.classList.toggle('on', !!isLiveOverlay);
+
+  // Legend voor 'all' mode (compact)
+  if (mode === 'all') {
+    let lx = pad.left + 4;
+    const ly = pad.top + 2;
+    ctx.font = '9.5px Inter';
+    ctx.textAlign = 'left';
+    for (const s of series) {
+      ctx.fillStyle = s.color;
+      ctx.fillRect(lx, ly - 5, 8, 3);
+      ctx.fillStyle = '#002035';
+      ctx.fillText(s.label, lx + 11, ly);
+      lx += ctx.measureText(s.label).width + 22;
+    }
+  }
+}
+
+function renderHistoryEquitySummary() {
+  const el = document.getElementById('historyEquitySummary');
+  const rangeEl = document.getElementById('historyEquityRange');
+  if (!el) return;
+  const j = historyEquity.data;
+  if (!j || !j.summary) {
+    el.innerHTML = '';
+    if (rangeEl) rangeEl.textContent = '';
+    return;
+  }
+  if (rangeEl) {
+    rangeEl.textContent = `${j.startDate} \u2192 vandaag (${j.daysCount} d, ${j.tradesUsed} trades)`;
+  }
+  const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const fmtEur = (n) => '\u20AC' + n.toFixed(2);
+  const fmtPnl = (n) => (n >= 0 ? '+' : '') + '\u20AC' + n.toFixed(2);
+  const cls = (n) => n > 0 ? 'up' : n < 0 ? 'down' : '';
+  const s = j.summary;
+
+  // Live overlay: vervang totaal-end + pnl + pnlPct met live PV indien beschikbaar
+  const livePV = getLivePV();
+  let liveEnd = s.total.end;
+  let livePnl = s.total.pnl;
+  let livePnlPct = s.total.pnlPct;
+  let livePeak = s.total.peak;
+  let liveBadge = '';
+  if (livePV != null && Math.abs(livePV - s.total.end) > 0.01) {
+    liveEnd = livePV;
+    livePnl = livePV - s.total.start;
+    livePnlPct = s.total.start > 0 ? (livePnl / s.total.start) * 100 : 0;
+    livePeak = Math.max(livePeak, livePV);
+    liveBadge = ' <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#2e8b57; box-shadow:0 0 0 0 rgba(46,139,87,0.7); animation: livePulse 1.6s infinite; margin-left:4px; vertical-align:middle;"></span>';
+  }
+
+  el.innerHTML = `
+    <div class="history-equity-stat">
+      <div class="lbl">Start balance</div>
+      <div class="val">${fmtEur(s.total.start)}</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Huidig totaal${liveBadge}</div>
+      <div class="val ${cls(livePnl)}">${fmtEur(liveEnd)}</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Totaal P&amp;L</div>
+      <div class="val ${cls(livePnl)}">${fmtPnl(livePnl)} (${fmtPct(livePnlPct)})</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Peak</div>
+      <div class="val">${fmtEur(livePeak)}</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Max drawdown</div>
+      <div class="val down">-${s.total.maxDdPct.toFixed(2)}%</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Camelot cum P&amp;L</div>
+      <div class="val ${cls(s.camelot.pnl)}">${fmtPnl(s.camelot.pnl)}</div>
+    </div>
+    <div class="history-equity-stat">
+      <div class="lbl">Kronos cum P&amp;L</div>
+      <div class="val ${cls(s.kronos.pnl)}">${fmtPnl(s.kronos.pnl)}</div>
+    </div>
+  `;
+}
+
+async function refreshHistoryEquity(force = false) {
+  await fetchHistoryEquity(force);
+  drawHistoryEquity();
+  renderHistoryEquitySummary();
+}
+
+// Handle canvas resize
+window.addEventListener('resize', () => {
+  drawEquityCurve();
+  drawHistoryEquity();
+});
+
+// Eerste laad + refresh elke 2 minuten (server-cache is 60s)
+refreshHistoryEquity().catch(() => {});
+setInterval(() => refreshHistoryEquity(true), 120000);
+
+// Bot Selectie — IMMEDIATE fetch zodat de tiles direct rendering ipv te wachten
+// op init() → await refreshAll() (5 tokens × 2 fetches = ~3-5s lag voorheen).
+// Periodieke sync wordt later in init() gestart.
+if (typeof loadBotSelect === 'function') {
+  loadBotSelect().catch((e) => console.warn('[bot-select] initial load failed:', e?.message));
+}
+
+init();
+</script>
+</body>
+</html>

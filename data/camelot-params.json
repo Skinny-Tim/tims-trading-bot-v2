@@ -1,0 +1,36 @@
+{
+  "_comment": "Auto-tuned Camelot parameters. Updated dagelijks door scripts/camelot-tuner.js. Manual edits worden bij volgende run overschreven.",
+  "_updated": "2026-04-23T05:32:00.284Z",
+  "_source": "auto-tuner",
+  "_score": -1.6248884157022527,
+  "_stats": {
+    "trades": 164,
+    "winRate": 0.3170731707317073,
+    "profitFactor": 0.657820562891373,
+    "sharpe": -2.4701088828239826,
+    "totalPnl": -4359.402464793304,
+    "window": "2160 × 1h",
+    "tokens": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "BNB",
+      "XRP",
+      "AVAX",
+      "LINK",
+      "DOGE"
+    ]
+  },
+  "_previousScore": -1.53074467578794,
+  "params": {
+    "adxRangeMax": 18,
+    "adxTrendMin": 28,
+    "rsiOversold": 35,
+    "rsiOverbought": 70,
+    "rangeStopAtr": 1.3,
+    "trendStopAtr": 1.3,
+    "trendTgtAtr": 3.5,
+    "trendPullAtr": 0.3,
+    "longOnly": false
+  }
+}
