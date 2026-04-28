@@ -18,10 +18,6 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/metals.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "api/signals-cron.js",
       "use": "@vercel/node",
       "config": {
@@ -30,13 +26,6 @@
     },
     {
       "src": "api/kronos.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
-    },
-    {
-      "src": "api/backtest-agent.js",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 60
@@ -59,13 +48,6 @@
     },
     {
       "src": "api/live-state.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 30
-      }
-    },
-    {
-      "src": "api/shakedown.js",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 30
@@ -123,10 +105,6 @@
     {
       "src": "api/config.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "api/claude-analyzer.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -143,20 +121,12 @@
       "dest": "/logo.png"
     },
     {
-      "src": "/api/metals",
-      "dest": "/api/metals.js"
-    },
-    {
       "src": "/api/signals-cron",
       "dest": "/api/signals-cron.js"
     },
     {
       "src": "/api/kronos",
       "dest": "/api/kronos.js"
-    },
-    {
-      "src": "/api/backtest-agent",
-      "dest": "/api/backtest-agent.js"
     },
     {
       "src": "/api/signal-config",
@@ -177,10 +147,6 @@
     {
       "src": "/api/live-state",
       "dest": "/api/live-state.js"
-    },
-    {
-      "src": "/api/shakedown",
-      "dest": "/api/shakedown.js"
     },
     {
       "src": "/api/ew-audit",
@@ -257,10 +223,6 @@
     {
       "src": "/api/config",
       "dest": "/api/config.js"
-    },
-    {
-      "src": "/api/claude-analyzer",
-      "dest": "/api/claude-analyzer.js"
     },
     {
       "src": "/(.*)",
