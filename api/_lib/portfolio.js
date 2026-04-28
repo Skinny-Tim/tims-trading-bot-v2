@@ -110,7 +110,7 @@ async function loadDedup(bot) {
   if (!bot) throw new Error('loadDedup: bot required');
   const v = await redis.get(`portfolio:dedup:${bot}`);
   if (v && typeof v === 'object') return v;
-  return { lastSignals: {}, lastNtfyPush: {} };
+  return { lastSignals: {}, lastNtfyPush: {}, recentlyClosed: {} };
 }
 async function saveDedup(bot, dedup) {
   if (!bot) throw new Error('saveDedup: bot required');
